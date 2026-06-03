@@ -1,0 +1,329 @@
+================================================================================
+FLORIDA HOME INSPECTION REGULATORY REFERENCE
+FloridaInspect Agent - Knowledge Base
+================================================================================
+
+SOURCE: Florida Statutes, Chapter 468 Part XV — Home Inspectors
+        Florida Administrative Code 61-30 — Standards of Practice
+        Citizens Property Insurance — 4-Point & Wind Mitigation Requirements
+        Florida Building Code (FBC) 8th Edition (2023)
+
+--------------------------------------------------------------------------------
+SECTION 1: FLORIDA STATUTE 468 PART XV — HOME INSPECTORS LICENSING
+--------------------------------------------------------------------------------
+
+468.8311 — Definitions
+  "Home inspection" means a limited, non-invasive, visual examination of the
+  readily accessible areas of a residential building, performed for a fee,
+  designed to identify defects within specific systems and components of a
+  building that are both observed and deemed material by the home inspector.
+
+  "Home inspector" means a person who is licensed under this part to perform
+  home inspections.
+
+  "Inspector of record" means the licensed home inspector who performs the
+  inspection and signs the home inspection report.
+
+468.8314 — Licensure required
+  A person may not perform, or offer to perform, a home inspection for
+  compensation unless that person holds a valid home inspector license issued
+  by the Department of Business and Professional Regulation (DBPR).
+
+468.8319 — Minimum inspection requirements
+  A licensed home inspector must inspect all of the following systems when
+  present and accessible:
+  (a) Structural system — foundation, grading, roof covering, roof structure,
+      walls, columns, floors, ceilings, attic, and framing.
+  (b) Electrical system — service entrance, panels, branch circuits, connected
+      devices and fixtures, smoke detectors, and carbon monoxide detectors.
+  (c) HVAC system — heating and cooling equipment, ductwork distribution,
+      thermostats, and energy sources.
+  (d) Plumbing system — interior water supply and distribution, drains, waste
+      and vents, water heaters, and all fixtures and faucets.
+  (e) Appliances — installed dishwashers, ranges, ovens, garbage disposals,
+      microwave ovens, bathroom exhaust fans.
+
+468.8323 — Standards of practice
+  Home inspectors shall follow the Standards of Practice adopted by rule by
+  the Florida Building Commission. Reports shall identify:
+  (a) The systems and components inspected.
+  (b) Deficiencies in the condition of inspected systems or components.
+  (c) Which systems or components were not inspected and the reason.
+
+468.8326 — Report requirements
+  The written inspection report must:
+  (a) Describe the condition of inspected systems clearly and without
+      ambiguity.
+  (b) Include photographs of material defects.
+  (c) Be delivered to the client within three business days of the inspection.
+  (d) Identify the inspector of record and license number.
+  (e) State the limitations of the inspection.
+
+--------------------------------------------------------------------------------
+SECTION 2: 4-POINT INSPECTION REQUIREMENTS
+--------------------------------------------------------------------------------
+
+The 4-Point Inspection evaluates only four major systems for insurance
+underwriting purposes, particularly for older homes (generally 30+ years).
+Florida insurers widely require this form, which follows the Citizens Property
+Insurance Corporation format.
+
+--- 2A. ROOF SYSTEM ---
+
+Roof Age & Condition:
+  - Inspector must determine and report the estimated age of the roof covering.
+  - Roof covering material must be identified: asphalt shingle, tile (concrete
+    or clay), metal (standing seam or exposed fastener), built-up/modified
+    bitumen, or other.
+  - Condition rating: Excellent / Good / Fair / Poor.
+  - Any evidence of leaks, missing shingles, ponding water, improper
+    flashings, or inadequate drainage must be documented.
+  - Remaining useful life estimate required (in years).
+
+Deficiency triggers requiring immediate notation:
+  * Active roof leaks or water stains at ceiling/decking indicating prior leak.
+  * Shingles showing granule loss exceeding 25% of surface area.
+  * Fascia or soffit damage, missing or deteriorated flashing.
+  * Evidence of prior repairs without permit (visible re-nailing patterns,
+    mismatched materials).
+  * Flat roofs with standing water or blistering membrane.
+  * Roof decking visible sagging or structural deformation.
+
+Regulatory reference: FBC R905 — Requirements for Roof Coverings.
+  FBC R906 — Roof Insulation. Citizens 4-Point Form HO-800 Rev. 11/2021.
+
+--- 2B. ELECTRICAL SYSTEM ---
+
+Panel & Service:
+  - Service amperage must be determined: 60A, 100A, 150A, 200A, or greater.
+  - Panel manufacturer and type must be identified.
+  - Inspector must flag any Federal Pacific (Stab-Lok), Zinsco/Sylvania,
+    or pushmatic panels as high-risk and insurance-ineligible in most cases.
+  - Double-tapped breakers must be noted (two conductors on a single breaker
+    not designed for it).
+  - Breaker condition: any evidence of heat damage, corrosion, or tripping.
+
+Wiring:
+  - Aluminum wiring in branch circuits (post-1965) must be identified and
+    flagged — requires COPALUM crimp connectors or AlumiConn devices per
+    NEC 310.14 and Florida requirements.
+  - Knob-and-tube wiring (pre-1950) must be identified and noted as
+    non-insurable by most FL carriers.
+  - Cloth-wrapped wiring must be documented.
+  - GFCI protection: required within 6 feet of any water source (NEC 210.8),
+    in garages, unfinished basements, crawlspaces, and exterior locations.
+  - AFCI protection: required in all habitable rooms per FBC E3902.
+
+Deficiency triggers:
+  * Exposed or unprotected wiring.
+  * Open junction boxes or missing cover plates.
+  * Evidence of DIY wiring (improper splices, missing wire nuts).
+  * Missing breaker knockouts.
+  * Main disconnect not labeled or inaccessible.
+
+Regulatory reference: NEC 2020 (adopted in Florida via FBC 7th/8th Edition).
+  Florida Statute 553.73 — Florida Building Code adoption.
+
+--- 2C. PLUMBING SYSTEM ---
+
+Supply Lines:
+  - Material must be identified: copper, CPVC, PVC, PEX, galvanized, polybutylene.
+  - Polybutylene pipe (gray plastic, commonly installed 1978–1995) is a
+    critical deficiency — it has a known failure history and is non-insurable
+    with most FL carriers. Manufacturer identifiers: Quest, Shell Oil, DuPont.
+  - Galvanized pipe older than 40 years must be flagged for corrosion risk.
+
+Drain, Waste & Vent:
+  - Material: cast iron, ABS, PVC, or galvanized.
+  - Cast iron showing significant corrosion or pitting must be noted.
+
+Water Heater:
+  - Age, fuel type, capacity (gallons), and condition must be documented.
+  - Water heaters 15+ years old are flagged as at end of serviceable life.
+  - Temperature-pressure relief (TPR) valve must be present and properly
+    discharged to exterior or floor drain; improper discharge (e.g., capped
+    or discharged overhead) is a code violation.
+  - No water heaters installed in sleeping rooms or closets opening to them
+    (FBC R2004.1).
+
+Deficiency triggers:
+  * Active leaks at any supply or drain connection.
+  * Polybutylene supply piping.
+  * Galvanized drain lines with visible corrosion or blockage.
+  * Water heater without TPR valve or with improper discharge.
+  * Evidence of sewage odor (possible venting failure).
+
+Regulatory reference: FBC Plumbing Code Chapter 6 (Water Supply & Distribution).
+  FBC Plumbing Code Chapter 7 (Sanitary Drainage).
+
+--- 2D. HVAC SYSTEM ---
+
+Equipment:
+  - Age, type (central air/heat, heat pump, mini-split, window unit), and
+    condition of all heating and cooling equipment must be documented.
+  - HVAC equipment 15+ years old flagged as approaching end of serviceable life.
+  - Refrigerant type must be noted; R-22 systems are being phased out and
+    parts/refrigerant availability is limited.
+
+Ductwork:
+  - Material (sheet metal, flex duct, ductboard) and insulation must be noted.
+  - Disconnected, crushed, or uninsulated ductwork in unconditioned spaces
+    must be flagged.
+  - Ductwork in attics must be insulated to minimum R-6 per FBC Energy Code.
+
+Ventilation:
+  - Bathroom exhaust fans must vent to exterior (not attic).
+  - Dryer vents must terminate at building exterior.
+
+Deficiency triggers:
+  * Refrigerant leaks (oil staining at fittings, ice formation on lines).
+  * Missing or severely clogged air filters.
+  * Inoperable heating or cooling during inspection.
+  * Disconnected duct runs.
+  * Ventilation terminating into attic space.
+
+Regulatory reference: FBC Mechanical Code Chapter 13 (Commercial) / Chapter 14.
+  ASHRAE 62.2 — Ventilation for Acceptable Indoor Air Quality.
+
+--------------------------------------------------------------------------------
+SECTION 3: WIND MITIGATION INSPECTION CRITERIA
+--------------------------------------------------------------------------------
+
+Wind Mitigation Inspections are conducted to qualify homeowners for insurance
+premium discounts under Florida Statute 627.0629. The inspection is documented
+on the OIR-B1-1802 form (Office of Insurance Regulation).
+
+--- 3A. BUILDING CODE ---
+
+  Inspector must determine the building permit date to classify:
+  - Pre-FBC: Built before March 1, 2002 (no wind credits in most categories).
+  - FBC 2001 or later: Eligible for credits based on construction features.
+  - Post-2001 construction: Document permit number and year.
+
+--- 3B. ROOF COVERING ---
+
+  Roof covering must meet FBC High-Velocity Hurricane Zone (HVHZ) or
+  non-HVHZ standards based on county:
+  - HVHZ counties: Miami-Dade, Broward.
+  - Non-HVHZ: All other Florida counties.
+
+  Credits available for:
+  * FBC product approval number present on installed materials.
+  * Roof covering installed to current FBC standard.
+
+--- 3C. ROOF DECK ATTACHMENT ---
+
+  Inspector must determine nail type and spacing by accessing attic:
+  - 8d nails (0.131" x 2.5") at 6"/12" spacing: Maximum credit.
+  - 8d nails at 6"/6" spacing: Maximum credit (HVHZ equivalent).
+  - 6d nails or clips: Lesser or no credit.
+  - Staples: No credit.
+
+  Plywood thickness determines structural adequacy:
+  - Minimum 19/32" (15/32" pre-2002 construction).
+
+--- 3D. ROOF-TO-WALL CONNECTIONS ---
+
+  This is one of the most significant rating factors. Inspector must visually
+  identify connector type via attic access:
+
+  a) Single wraps (strap on one side of rafter): Minimal credit.
+  b) Double wraps (straps on both sides of rafter): Moderate credit.
+  c) Clips (hurricane clip, H-clip): Moderate credit.
+  d) Single/double wraps with embedded connection: Higher credit.
+  e) Structural/engineered connectors (Simpson Strong-Tie H10, H14, etc.):
+     Maximum credit — must visually confirm at minimum 90% of connections.
+  f) Toe nails only (3 nails per rafter): No credit — highest risk category.
+
+  Common Florida connectors:
+  - Simpson Strong-Tie H2.5, H10, H2.5A, HETA: provide rated uplift capacity.
+  - MiTek RT7, RT9 series: equivalent engineering-rated connections.
+
+--- 3E. ROOF GEOMETRY ---
+
+  Hip roof (all sides slope to eaves): Maximum wind credit — most aerodynamic.
+  Hip roof must be documented as >90% hip for credit.
+  Flat/Low slope (<2:12 pitch): Separate credit calculation.
+  Gable/Other: No geometry credit.
+
+  Inspector must sketch or photograph roof geometry from exterior.
+
+--- 3F. OPENING PROTECTION ---
+
+  Windows, doors, skylights, and garage doors must be evaluated:
+
+  a) No protection: No credit.
+  b) Basic: Panels meeting ASTM E1996 Large Missile Impact.
+  c) Hurricane Impact Resistant (FBC Product Approval required):
+     - Windows/doors with impact glass and reinforced frames.
+     - Miami-Dade NOA (Notice of Acceptance) or FL Product Approval Number.
+  d) High-Velocity Hurricane Zone rated: Maximum credit.
+
+  Inspector must verify:
+  - Product approval number on window/door frame or label.
+  - Absence of gaps or broken seals in impact products.
+  - Garage door rating: minimum rated for 130 mph (inland) or 150 mph (coastal).
+
+--- 3G. SECONDARY WATER RESISTANCE (SWR) ---
+
+  Peel-and-stick self-adhering underlayment (e.g., Grace Ice & Water Shield,
+  Henry Blueskin) applied to roof deck under shingles provides SWR credit.
+  Inspector must verify in attic — visible as dark rubberized membrane on
+  underside of decking, or via photos during re-roofing documented permits.
+
+  Products qualifying for SWR:
+  - ASTM D1970 compliant self-adhering polymer modified bitumen sheet.
+  - Must cover 100% of deck area for full credit.
+
+--------------------------------------------------------------------------------
+SECTION 4: COMMON FLORIDA-SPECIFIC INSPECTION CONCERNS
+--------------------------------------------------------------------------------
+
+4.1 — SINKHOLE INDICATORS
+  Florida's karst geology creates sinkhole risk statewide, particularly in:
+  Hernando, Hillsborough, Pasco, Pinellas, Polk counties.
+  Inspection flags:
+  - Diagonal cracking at door/window corners (stair-step pattern in block).
+  - Foundation settlement or uneven floors (>1" slope across 10 feet).
+  - Circular depression in yard, especially near structure.
+  Note: Home inspectors are NOT licensed to determine sinkhole activity;
+  findings must be referred to a licensed geotechnical engineer.
+
+4.2 — CHINESE DRYWALL (2001–2009 era)
+  Imported Chinese drywall emits sulfur compounds causing:
+  - Corroded copper wiring (blackened conductors and coils).
+  - Corroded HVAC evaporator coils and refrigerant lines.
+  - Persistent sulfur/rotten egg odor.
+  Primarily in homes built or remodeled 2001–2009. Must be referred for
+  formal testing if suspected.
+
+4.3 — WOOD-DESTROYING ORGANISMS (WDO)
+  WDO inspection is SEPARATE from home inspection and requires a licensed
+  pest control operator (FL Statute 482). Common in Florida:
+  - Subterranean termites (Reticulitermes and Coptotermes formosanus — Formosan).
+  - Drywood termites (require fumigation).
+  - Wood-boring beetles.
+  Inspector may note visible evidence (mud tubes, frass, hollow wood) but must
+  refer to licensed WDO inspector for treatment recommendations.
+
+4.4 — MOLD & MOISTURE
+  Florida's humid subtropical climate makes moisture intrusion a primary concern.
+  Inspector must document:
+  - Visible mold growth (appears as discoloration, fuzzy growth).
+  - Moisture readings >20% in wood substrates.
+  - Staining at ceiling, walls, or floor indicating water intrusion.
+  - Improper slope/drainage toward foundation.
+  Mold remediation must be referred to a licensed mold remediator (FL Statute 468 Part XVI).
+
+4.5 — SEPTIC SYSTEMS
+  Septic system inspection is separate from home inspection; requires a
+  licensed septic inspector. Inspector may note:
+  - Visible drain field failure (soggy ground, odor, surfacing effluent).
+  - Last pump-out date from homeowner disclosure.
+  - Proximity of drain field to well (minimum 75 feet per FL Statute 381).
+
+--------------------------------------------------------------------------------
+END OF REGULATORY REFERENCE DOCUMENT
+Version: 2024-01 | Jurisdiction: State of Florida
+For official regulatory text visit: leg.state.fl.us | floridabuilding.org
+--------------------------------------------------------------------------------
