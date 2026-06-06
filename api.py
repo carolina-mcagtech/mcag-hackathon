@@ -3,14 +3,16 @@ api.py — FastAPI HTTP interface for FloridaInspect Agent.
 Deployed on Railway via Procfile / railway.json.
 
 Endpoints:
-    GET  /health   — liveness probe
-    POST /demo     — run the built-in 7-finding demo scenario
-    POST /inspect  — run Analyze + Report agents on caller-supplied findings
+    GET  /health       — liveness probe
+    GET  /demo-result  — return cached AI demo report instantly (no pipeline run)
+    POST /demo         — run the built-in 7-finding demo scenario
+    POST /inspect      — run Analyze + Report agents on caller-supplied findings
 """
 
 from __future__ import annotations
 
 import datetime
+import json
 import os
 import sys
 from pathlib import Path
@@ -60,11 +62,32 @@ def _run_pipeline(
     return {"inspection_type": inspection_type, **report.model_dump()}
 
 
+_DEMO_RESULT_PATH = Path(__file__).parent / "demo_report_output.json"
+
+
 # ── GET /health ───────────────────────────────────────────────────────────────
 
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "InspectIQ Agent"}
+
+
+# ── GET /demo-result ──────────────────────────────────────────────────────────
+
+@app.get("/demo-result")
+def demo_result() -> dict[str, Any]:
+    """Return the pre-generated AI demo report from disk without running the pipeline.
+
+    Reads demo_report_output.json committed to the repo, so judges get real
+    Gemini-generated output instantly instead of waiting ~3 minutes for the
+    full pipeline to run.
+    """
+    if not _DEMO_RESULT_PATH.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Demo result not found. Run POST /demo first to generate it.",
+        )
+    return json.loads(_DEMO_RESULT_PATH.read_text(encoding="utf-8"))
 
 
 # ── POST /demo ────────────────────────────────────────────────────────────────
@@ -86,37 +109,92 @@ def demo() -> dict[str, Any]:
 
 # ── POST /inspect ─────────────────────────────────────────────────────────────
 
+class FlexFinding(BaseModel):
+    """Flexible finding input — only severity is truly required.
+
+    Accepts both the canonical FindingDraft field names and common shorthand
+    alternatives so callers don't need to know the internal schema.
+
+    Minimal example::
+
+        {
+          "system": "electrical",
+          "observation": "Possible FPE Stab-Lok panel observed",
+          "severity": "critical"
+        }
+
+    Full example (matches internal FindingDraft exactly)::
+
+        {
+          "system": "electrical",
+          "location": "Main electrical panel — garage",
+          "observation": "Federal Pacific Stab-Lok panel, 150-amp service.",
+          "severity": "critical",
+          "deficiency_suspected": true,
+          "photo_description": "Federal Pacific electrical panel with double-tapped breakers.",
+          "confidence": 0.97
+        }
+
+    Field aliases accepted:
+        component  → system
+        description → observation
+    """
+
+    # canonical fields
+    system: Optional[str] = Field(default=None, description="roof | electrical | plumbing | hvac | structure | other")
+    location: str = Field(default="Not specified", description="Where in the property this was observed")
+    observation: Optional[str] = Field(default=None, description="Plain-language description of what was observed")
+    severity: str = Field(default="major", description="critical | major | minor | informational")
+    deficiency_suspected: bool = Field(default=True)
+    photo_description: Optional[str] = Field(default=None)
+    confidence: float = Field(default=0.85, ge=0.0, le=1.0)
+
+    # shorthand aliases
+    component: Optional[str] = Field(default=None, description="Alias for 'system'")
+    description: Optional[str] = Field(default=None, description="Alias for 'observation'")
+
+    def to_finding_draft(self) -> FindingDraft:
+        system = self.system or self.component or "other"
+        observation = self.observation or self.description or "No observation provided"
+        return FindingDraft(
+            system=system,
+            location=self.location,
+            observation=observation,
+            severity=self.severity,
+            deficiency_suspected=self.deficiency_suspected,
+            photo_description=self.photo_description or observation[:80],
+            confidence=self.confidence,
+        )
+
+
 class InspectRequest(BaseModel):
-    findings: list[dict[str, Any]] = Field(
-        description="List of finding objects (FindingDraft schema)"
-    )
-    inspection_type: str = Field(
-        default="4-point",
-        description="Inspection type: 4-point | wind-mit | full",
-    )
-    property_address: Optional[str] = Field(
-        default="Address not provided",
-        description="Street address of the inspected property",
-    )
-    inspection_date: Optional[str] = Field(
-        default=None,
-        description="Inspection date ISO-8601 (defaults to today)",
-    )
+    findings: list[FlexFinding] = Field(description="One or more inspection findings")
+    inspection_type: str = Field(default="4-point", description="4-point | wind-mit | full")
+    property_address: Optional[str] = Field(default="Address not provided")
+    inspection_date: Optional[str] = Field(default=None, description="ISO-8601 date, defaults to today")
 
 
 @app.post("/inspect")
 def inspect(body: InspectRequest) -> dict[str, Any]:
-    """Run Analyze + Report agents on caller-supplied findings."""
+    """Run Analyze + Report agents on caller-supplied findings.
+
+    Minimal call::
+
+        curl -X POST /inspect -H "Content-Type: application/json" -d '{
+          "findings": [
+            {"system": "electrical", "observation": "Possible FPE Stab-Lok panel", "severity": "critical"},
+            {"component": "roof",    "description": "Missing shingles on north slope", "severity": "major"}
+          ],
+          "inspection_type": "4-point"
+        }'
+    """
     if not os.environ.get("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
 
     if not body.findings:
         raise HTTPException(status_code=422, detail="findings list must not be empty")
 
-    try:
-        finding_objects = [FindingDraft.model_validate(f) for f in body.findings]
-    except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"Invalid finding data: {exc}") from exc
+    finding_objects = [f.to_finding_draft() for f in body.findings]
 
     return _run_pipeline(
         findings=finding_objects,
