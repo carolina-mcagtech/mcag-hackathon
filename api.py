@@ -222,6 +222,7 @@ class PhotoBase64Request(BaseModel):
     system_hint: Optional[str] = Field(default=None, description="System context, e.g. 'electrical'")
     property_address: Optional[str] = Field(default="Address not provided")
     inspection_date: Optional[str] = Field(default=None, description="ISO-8601 date, defaults to today")
+    photo_url: Optional[str] = Field(default=None, description="Optional public URL to display as the field photo in the HTML report")
 
 
 class PhotoUrlRequest(BaseModel):
@@ -383,6 +384,8 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
         inspection_date=body.inspection_date or datetime.date.today().isoformat(),
         inspection_type=body.inspection_type,
     )
+    if body.photo_url and result.get("sections"):
+        result["sections"][0]["photo_url"] = body.photo_url
     report_id = str(uuid.uuid4())
     reports_store[report_id] = result
     result["report_id"] = report_id
@@ -414,6 +417,56 @@ _SEVERITY_LABEL: dict[str, str] = {
     "good": "Satisfactory",
     "informational": "Informational",
 }
+
+# Photo URLs for demo report sections.
+# Uses picsum.photos (Unsplash-backed CDN) with deterministic seeds — fast (15KB), no rate limits,
+# always 200 OK, designed for hotlinking. Wikimedia Commons full-size images caused 429 rate
+# limits during demo sessions due to IP throttling.
+_DEMO_PHOTO_URLS: dict[str, str] = {
+    "roof":        "https://picsum.photos/seed/rooftiles/320/200",
+    "electrical":  "https://picsum.photos/seed/electricalpanel/320/200",
+    "plumbing":    "https://picsum.photos/seed/plumbingpipes/320/200",
+    "hvac":        "https://picsum.photos/seed/hvacunit/320/200",
+    "heating":     "https://picsum.photos/seed/hvacunit/320/200",
+    "ventilation": "https://picsum.photos/seed/hvacunit/320/200",
+    "structural":  "https://picsum.photos/seed/foundationwall/320/200",
+}
+
+
+def _get_demo_photo_url(system: str) -> Optional[str]:
+    system_lower = system.lower()
+    for keyword, url in _DEMO_PHOTO_URLS.items():
+        if keyword in system_lower:
+            return url
+    return None
+
+
+def _inject_demo_photos(report: dict[str, Any]) -> dict[str, Any]:
+    """Return a shallow copy of report with photo_url injected into each section."""
+    report = dict(report)
+    report["sections"] = [
+        {**s, "photo_url": _get_demo_photo_url(s.get("system", ""))}
+        for s in (report.get("sections") or [])
+    ]
+    return report
+
+
+def _photo_block(url: Optional[str], component: str) -> str:
+    """Render the photo thumbnail + caption block for a finding card."""
+    safe_comp = escape(component)
+    placeholder = f'<div class="photo-placeholder"><span>Photo: {safe_comp}</span></div>'
+    if url:
+        safe_url = escape(url)
+        img = (
+            f'<img src="{safe_url}" alt="Field photo — {safe_comp}" class="photo-thumb"'
+            f' style="display:none"'
+            f" onload=\"this.previousElementSibling.style.display='none';this.style.display='block';\""
+            f' onerror="this.style.display=\'none\';">'
+        )
+    else:
+        img = ""
+    caption = f'<div class="photo-caption">Field photo — {safe_comp}</div>'
+    return f'<div class="card-photo">{placeholder}{img}{caption}</div>'
 
 
 def _render_report_html(report: dict[str, Any]) -> str:
@@ -457,16 +510,23 @@ def _render_report_html(report: dict[str, Any]) -> str:
             f'<ul class="actions">{action_items_html}</ul>'
         ) if actions else ""
 
+        photo = _photo_block(s.get("photo_url"), s.get("system") or "Component")
+
         return f"""
         <div class="card {css}">
           <div class="card-header">
             <span class="system-name">{system}</span>
             <span class="severity-badge badge-{css}">{label}</span>
           </div>
-          <div class="headline">{headline}</div>
-          <div class="narrative"><p>{narrative_text}</p></div>
-          {actions_block}
-          {note_html}
+          <div class="card-body">
+            <div class="card-content">
+              <div class="headline">{headline}</div>
+              <div class="narrative"><p>{narrative_text}</p></div>
+              {actions_block}
+              {note_html}
+            </div>
+            {photo}
+          </div>
         </div>"""
 
     sections_html = "\n".join(render_section(s) for s in sections)
@@ -603,6 +663,42 @@ def _render_report_html(report: dict[str, Any]) -> str:
     .card.minor    {{ border-left-color: #B8860B; }}
     .card.pass     {{ border-left-color: #1A7A4A; }}
 
+    /* Card body: text left, photo right */
+    .card-body {{
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }}
+    .card-content {{ flex: 1; min-width: 0; }}
+    .card-photo {{ flex: 0 0 200px; width: 200px; }}
+    .photo-placeholder {{
+      background: #F0F2F5;
+      border: 1px dashed #D0D5DD;
+      border-radius: 6px;
+      color: #B0B7C3;
+      font-size: 12px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+    }}
+    .photo-thumb {{
+      width: 100%;
+      border-radius: 6px;
+      display: block;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }}
+    .photo-caption {{
+      font-size: 11px;
+      color: #AAA;
+      margin-top: 5px;
+      text-align: center;
+      font-style: italic;
+      line-height: 1.4;
+    }}
+
     .card-header {{
       display: flex;
       justify-content: space-between;
@@ -723,6 +819,11 @@ def _render_report_html(report: dict[str, Any]) -> str:
       .header-right {{ text-align: center; }}
       .property-meta {{ grid-template-columns: 1fr; }}
     }}
+    @media (max-width: 700px) {{
+      .card-body {{ flex-direction: column-reverse; }}
+      .card-photo {{ width: 100%; flex: none; }}
+      .photo-thumb {{ max-width: 100%; }}
+    }}
   </style>
 </head>
 <body>
@@ -819,4 +920,4 @@ def demo_report_html() -> HTMLResponse:
             detail="Demo report not found on disk. Run POST /demo first.",
         )
     report = json.loads(_DEMO_RESULT_PATH.read_text(encoding="utf-8"))
-    return HTMLResponse(content=_render_report_html(report))
+    return HTMLResponse(content=_render_report_html(_inject_demo_photos(report)))
