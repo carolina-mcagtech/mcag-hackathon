@@ -11,6 +11,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import base64
 import datetime
 import json
 import os
@@ -18,6 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,7 +30,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from demo.run_demo import INSPECTION_DATE, MOCK_FINDINGS, PROPERTY_ADDRESS
-from tools.classify_photo import FindingDraft
+from tools.classify_photo import FindingDraft, classify_photo_from_bytes
 from tools.generate_narrative import assemble_full_report, generate_narrative
 from tools.validate_regulation import validate_regulation
 
@@ -198,6 +200,179 @@ def inspect(body: InspectRequest) -> dict[str, Any]:
 
     return _run_pipeline(
         findings=finding_objects,
+        property_address=body.property_address or "Address not provided",
+        inspection_date=body.inspection_date or datetime.date.today().isoformat(),
+        inspection_type=body.inspection_type,
+    )
+
+
+# ── shared photo request models ───────────────────────────────────────────────
+
+class PhotoBase64Request(BaseModel):
+    image_base64: str = Field(description="Base64-encoded image bytes (JPEG, PNG, or WEBP)")
+    inspection_type: str = Field(default="4-point", description="4-point | wind-mit | full")
+    mime_type: str = Field(default="image/jpeg", description="MIME type of the image")
+    location_hint: Optional[str] = Field(default=None, description="Location context, e.g. 'attic'")
+    system_hint: Optional[str] = Field(default=None, description="System context, e.g. 'electrical'")
+    property_address: Optional[str] = Field(default="Address not provided")
+    inspection_date: Optional[str] = Field(default=None, description="ISO-8601 date, defaults to today")
+
+
+class PhotoUrlRequest(BaseModel):
+    image_url: str = Field(description="Publicly accessible URL of the inspection photo")
+    inspection_type: str = Field(default="4-point", description="4-point | wind-mit | full")
+    location_hint: Optional[str] = Field(default=None)
+    system_hint: Optional[str] = Field(default=None)
+    property_address: Optional[str] = Field(default="Address not provided")
+    inspection_date: Optional[str] = Field(default=None)
+
+
+def _decode_base64_image(image_base64: str) -> bytes:
+    """Decode a base64 string to bytes, stripping data-URI prefix if present."""
+    data = image_base64
+    if "," in data:
+        data = data.split(",", 1)[1]
+    try:
+        return base64.b64decode(data)
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Invalid base64 image data: {exc}") from exc
+
+
+def _download_image(url: str) -> tuple[bytes, str]:
+    """Download an image from a URL and return (bytes, mime_type)."""
+    try:
+        resp = httpx.get(url, follow_redirects=True, timeout=30)
+        resp.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download image (HTTP {exc.response.status_code}): {url}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to download image: {exc}") from exc
+
+    content_type = resp.headers.get("content-type", "image/jpeg").split(";")[0].strip()
+    return resp.content, content_type
+
+
+# ── POST /capture ─────────────────────────────────────────────────────────────
+
+@app.post("/capture")
+def capture(body: PhotoBase64Request) -> dict[str, Any]:
+    """Classify a single inspection photo using Gemini Vision.
+
+    Accepts a base64-encoded image and returns a structured FindingDraft
+    describing the observed condition, severity, and confidence.
+
+    Example::
+
+        curl -X POST /capture -H "Content-Type: application/json" -d '{
+          "image_base64": "<base64-string>",
+          "inspection_type": "4-point",
+          "location_hint": "main electrical panel"
+        }'
+    """
+    if not os.environ.get("GEMINI_API_KEY"):
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
+
+    image_bytes = _decode_base64_image(body.image_base64)
+
+    try:
+        finding = classify_photo_from_bytes(
+            image_bytes=image_bytes,
+            mime_type=body.mime_type,
+            system_hint=body.system_hint,
+            location_hint=body.location_hint,
+        )
+    except EnvironmentError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        status = 429 if "rate limit" in str(exc).lower() else 502
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return finding.model_dump()
+
+
+# ── POST /capture-url ─────────────────────────────────────────────────────────
+
+@app.post("/capture-url")
+def capture_url(body: PhotoUrlRequest) -> dict[str, Any]:
+    """Classify an inspection photo supplied as a URL using Gemini Vision.
+
+    Downloads the image then runs the same Capture Agent logic as POST /capture.
+    Useful for quick testing without base64 encoding.
+
+    Example::
+
+        curl -X POST /capture-url -H "Content-Type: application/json" -d '{
+          "image_url": "https://example.com/roof.jpg",
+          "inspection_type": "4-point"
+        }'
+    """
+    if not os.environ.get("GEMINI_API_KEY"):
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
+
+    image_bytes, mime_type = _download_image(body.image_url)
+
+    try:
+        finding = classify_photo_from_bytes(
+            image_bytes=image_bytes,
+            mime_type=mime_type,
+            system_hint=body.system_hint,
+            location_hint=body.location_hint,
+        )
+    except EnvironmentError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        status = 429 if "rate limit" in str(exc).lower() else 502
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return finding.model_dump()
+
+
+# ── POST /pipeline ────────────────────────────────────────────────────────────
+
+@app.post("/pipeline")
+def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
+    """Run the full Capture → Analyze → Report pipeline on a single photo.
+
+    1. Capture Agent: classifies the photo with Gemini Vision → FindingDraft
+    2. Analyze Agent: validates the finding against FL regulations → RegulatoryCheck
+    3. Report Agent: generates a professional narrative → FullReport
+
+    Returns the complete FullReport JSON.
+
+    Example::
+
+        curl -X POST /pipeline -H "Content-Type: application/json" -d '{
+          "image_base64": "<base64-string>",
+          "inspection_type": "4-point",
+          "property_address": "123 Main St, Tampa, FL 33601"
+        }'
+    """
+    if not os.environ.get("GEMINI_API_KEY"):
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
+
+    image_bytes = _decode_base64_image(body.image_base64)
+
+    try:
+        finding = classify_photo_from_bytes(
+            image_bytes=image_bytes,
+            mime_type=body.mime_type,
+            system_hint=body.system_hint,
+            location_hint=body.location_hint,
+        )
+    except EnvironmentError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        status = 429 if "rate limit" in str(exc).lower() else 502
+        raise HTTPException(status_code=status, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return _run_pipeline(
+        findings=[finding],
         property_address=body.property_address or "Address not provided",
         inspection_date=body.inspection_date or datetime.date.today().isoformat(),
         inspection_type=body.inspection_type,

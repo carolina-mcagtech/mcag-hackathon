@@ -116,6 +116,8 @@ def classify_photo_from_bytes(
     location_hint: Optional[str] = None,
 ) -> FindingDraft:
     """Variant of classify_photo that accepts raw bytes instead of a file path."""
+    from google.genai import errors as genai_errors  # local import to avoid top-level dep
+
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise EnvironmentError("GEMINI_API_KEY environment variable is not set")
@@ -130,10 +132,16 @@ def classify_photo_from_bytes(
     if location_hint:
         hint_text += f"\nLocation context: {location_hint}"
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=[_SYSTEM_PROMPT + hint_text, image_part],
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=[_SYSTEM_PROMPT + hint_text, image_part],
+        )
+    except genai_errors.ClientError as exc:
+        if exc.code == 429:
+            raise RuntimeError(f"Gemini API rate limit exceeded: {exc}") from exc
+        raise RuntimeError(f"Gemini API error ({exc.code}): {exc}") from exc
+
     raw = response.text.strip()
 
     if raw.startswith("```"):
