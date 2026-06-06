@@ -80,6 +80,9 @@ def _load_regulations_into_chroma(client: chromadb.Client) -> chromadb.Collectio
     return collection
 
 
+_DEFAULT_CHROMA_PATH = str(Path(__file__).parent.parent / "chroma_db")
+
+
 def validate_regulation(
     finding: FindingDraft,
     chroma_path: Optional[str] = None,
@@ -91,17 +94,14 @@ def validate_regulation(
 
     Args:
         finding: A FindingDraft produced by classify_photo.
-        chroma_path: Optional path for ChromaDB persistence directory.
-                     Defaults to an in-memory client when None.
+        chroma_path: Path for ChromaDB persistence directory.
+                     Defaults to ./chroma_db in the project root.
 
     Returns:
         RegulatoryCheck with applicable regulations, compliance verdict, and
         recommended actions.
     """
-    if chroma_path:
-        client = chromadb.PersistentClient(path=chroma_path)
-    else:
-        client = chromadb.Client()
+    client = chromadb.PersistentClient(path=chroma_path or _DEFAULT_CHROMA_PATH)
 
     collection = _load_regulations_into_chroma(client)
 

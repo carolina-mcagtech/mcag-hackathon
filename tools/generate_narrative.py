@@ -7,6 +7,7 @@ Used by: ReportAgent
 """
 
 import os
+import time
 from typing import Optional
 
 from google import genai
@@ -107,19 +108,28 @@ def generate_narrative(
         regulatory_json=regulatory_check.model_dump_json(indent=2),
     )
 
-    try:
-        response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
-        raw = response.text.strip()
+    last_error = ""
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+            raw = response.text.strip()
 
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+                raw = raw.strip()
 
-        return ReportSection.model_validate_json(raw)
-    except Exception:
-        return _fallback_section(finding, regulatory_check)
+            return ReportSection.model_validate_json(raw)
+        except Exception as e:
+            last_error = str(e)
+            is_retryable = any(code in last_error for code in ("429", "503", "502", "500"))
+            if is_retryable and attempt < 2:
+                time.sleep(15 * (attempt + 1))
+            else:
+                break
+
+    return _fallback_section(finding, regulatory_check, error=last_error)
 
 
 def generate_executive_summary(sections: list[ReportSection]) -> str:
@@ -145,7 +155,7 @@ def generate_executive_summary(sections: list[ReportSection]) -> str:
         sections_data = [s.model_dump() for s in sections]
 
         prompt = _SUMMARY_PROMPT.format(sections_json=json.dumps(sections_data, indent=2))
-        response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         return response.text.strip()
     except Exception:
         return _fallback_executive_summary(sections)
@@ -198,9 +208,12 @@ def assemble_full_report(
     )
 
 
-def _fallback_section(finding: FindingDraft, check: RegulatoryCheck) -> ReportSection:
+def _fallback_section(finding: FindingDraft, check: RegulatoryCheck, error: str = "") -> ReportSection:
     """Build a minimal ReportSection when Gemini narrative generation fails."""
     severity_map = {"critical": "critical", "major": "poor", "minor": "fair", "informational": "satisfactory"}
+    note = "Narrative generated in fallback mode — manual review required."
+    if error:
+        note += f" (Gemini error: {error[:120]})"
     return ReportSection(
         system=finding.system.title(),
         headline=finding.photo_description,
@@ -212,7 +225,7 @@ def _fallback_section(finding: FindingDraft, check: RegulatoryCheck) -> ReportSe
         ),
         action_items=[check.recommended_action],
         severity_summary=severity_map.get(finding.severity, "fair"),
-        inspector_note="Narrative generated in fallback mode — manual review required.",
+        inspector_note=note,
     )
 
 
