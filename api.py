@@ -16,6 +16,8 @@ import datetime
 import json
 import os
 import sys
+import uuid
+from html import escape
 from pathlib import Path
 from typing import Any, Optional
 
@@ -27,6 +29,7 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from demo.run_demo import INSPECTION_DATE, MOCK_FINDINGS, PROPERTY_ADDRESS
@@ -39,6 +42,9 @@ app = FastAPI(
     version="1.0.0",
     description="AI-powered Florida home inspection report generation",
 )
+
+# In-memory store for pipeline-generated reports (keyed by UUID)
+reports_store: dict[str, dict[str, Any]] = {}
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -371,9 +377,446 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     except ValueError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    return _run_pipeline(
+    result = _run_pipeline(
         findings=[finding],
         property_address=body.property_address or "Address not provided",
         inspection_date=body.inspection_date or datetime.date.today().isoformat(),
         inspection_type=body.inspection_type,
     )
+    report_id = str(uuid.uuid4())
+    reports_store[report_id] = result
+    result["report_id"] = report_id
+    return result
+
+
+# ── HTML report renderer ──────────────────────────────────────────────────────
+
+_SEVERITY_CSS: dict[str, str] = {
+    "critical": "critical",
+    "poor": "major",
+    "major": "major",
+    "fair": "minor",
+    "minor": "minor",
+    "satisfactory": "pass",
+    "pass": "pass",
+    "good": "pass",
+    "informational": "pass",
+}
+
+_SEVERITY_LABEL: dict[str, str] = {
+    "critical": "Critical",
+    "poor": "Major",
+    "major": "Major",
+    "fair": "Minor",
+    "minor": "Minor",
+    "satisfactory": "Satisfactory",
+    "pass": "Satisfactory",
+    "good": "Satisfactory",
+    "informational": "Informational",
+}
+
+
+def _render_report_html(report: dict[str, Any]) -> str:
+    sections = report.get("sections", [])
+    inspection_type = report.get("inspection_type", "4-Point")
+
+    # Severity counts
+    counts: dict[str, int] = {"critical": 0, "major": 0, "minor": 0, "pass": 0}
+    for s in sections:
+        css = _SEVERITY_CSS.get((s.get("severity_summary") or "").lower(), "minor")
+        counts[css] = counts.get(css, 0) + 1
+
+    def count_chips() -> str:
+        chip_html = []
+        labels = [("critical", "Critical"), ("major", "Major"), ("minor", "Minor"), ("pass", "Satisfactory")]
+        for key, label in labels:
+            n = counts.get(key, 0)
+            if n:
+                chip_html.append(
+                    f'<span class="count-chip count-{key}">{n} {label}</span>'
+                )
+        return "\n".join(chip_html)
+
+    def render_section(s: dict[str, Any]) -> str:
+        sev_raw = (s.get("severity_summary") or "minor").lower()
+        css = _SEVERITY_CSS.get(sev_raw, "minor")
+        label = _SEVERITY_LABEL.get(sev_raw, sev_raw.title())
+        system = escape(s.get("system") or "System")
+        headline = escape(s.get("headline") or "")
+        narrative_text = escape(s.get("narrative") or "").replace("\n\n", "</p><p>").replace("\n", " ")
+        note = s.get("inspector_note")
+        note_html = (
+            f'<div class="inspector-note">{escape(note)}</div>' if note else ""
+        )
+        actions = s.get("action_items") or []
+        action_items_html = "\n".join(
+            f"<li>{escape(a)}</li>" for a in actions
+        )
+        actions_block = (
+            f'<div class="actions-label">Recommended Actions</div>'
+            f'<ul class="actions">{action_items_html}</ul>'
+        ) if actions else ""
+
+        return f"""
+        <div class="card {css}">
+          <div class="card-header">
+            <span class="system-name">{system}</span>
+            <span class="severity-badge badge-{css}">{label}</span>
+          </div>
+          <div class="headline">{headline}</div>
+          <div class="narrative"><p>{narrative_text}</p></div>
+          {actions_block}
+          {note_html}
+        </div>"""
+
+    sections_html = "\n".join(render_section(s) for s in sections)
+
+    limitations = report.get("limitations") or []
+    limitations_html = "\n".join(
+        f"<li>{escape(lim)}</li>" for lim in limitations
+    )
+
+    report_id = report.get("report_id", "")
+    report_id_html = (
+        f'<div class="report-id">Report ID: <code>{escape(report_id)}</code></div>'
+        if report_id else ""
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InspectIQ Report — {escape(report.get("property_address", ""))} </title>
+  <style>
+    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #F2F4F7;
+      color: #1A1A1A;
+      line-height: 1.6;
+    }}
+
+    /* ── Header ── */
+    .header {{
+      background: #0D2340;
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }}
+    .logo {{ font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }}
+    .logo-accent {{ color: #4DA6FF; }}
+    .logo-sub {{ font-size: 12px; color: #7AABDF; margin-top: 3px; letter-spacing: 0.3px; }}
+    .header-right {{
+      text-align: right;
+      font-size: 13px;
+      color: #7AABDF;
+      line-height: 1.5;
+    }}
+    .header-right strong {{ color: #C8DEFF; font-size: 14px; display: block; }}
+
+    /* ── Container ── */
+    .container {{ max-width: 920px; margin: 0 auto; padding: 32px 24px 48px; }}
+
+    /* ── Property block ── */
+    .property-block {{
+      background: white;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }}
+    .property-address {{
+      font-size: 19px;
+      font-weight: 700;
+      color: #0D2340;
+      margin-bottom: 12px;
+    }}
+    .property-meta {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 24px;
+      font-size: 13.5px;
+      color: #555;
+    }}
+    .meta-row {{ display: flex; gap: 6px; align-items: baseline; }}
+    .meta-label {{ font-weight: 600; color: #333; white-space: nowrap; }}
+    .report-id {{ font-size: 11px; color: #AAA; margin-top: 10px; }}
+    .report-id code {{ font-family: monospace; font-size: 11px; }}
+
+    /* ── Section label ── */
+    .section-label {{
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #7A8599;
+      margin-bottom: 10px;
+    }}
+
+    /* ── Executive summary ── */
+    .exec-block {{
+      background: #EEF3FA;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      border-left: 5px solid #0D2340;
+    }}
+    .exec-block p {{
+      font-size: 14.5px;
+      color: #2A2A2A;
+      line-height: 1.75;
+    }}
+
+    /* ── Severity count chips ── */
+    .summary-counts {{
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }}
+    .count-chip {{
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }}
+    .count-critical {{ background: #FDECEA; color: #B91C1C; }}
+    .count-major    {{ background: #FEF0E6; color: #C45000; }}
+    .count-minor    {{ background: #FFFBEB; color: #92640A; }}
+    .count-pass     {{ background: #ECFDF5; color: #166534; }}
+
+    /* ── Finding cards ── */
+    .findings {{ display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }}
+    .card {{
+      background: white;
+      border-radius: 10px;
+      padding: 22px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      border-left: 5px solid #DDD;
+    }}
+    .card.critical {{ border-left-color: #CC0000; }}
+    .card.major    {{ border-left-color: #C45000; }}
+    .card.minor    {{ border-left-color: #B8860B; }}
+    .card.pass     {{ border-left-color: #1A7A4A; }}
+
+    .card-header {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }}
+    .system-name {{
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #8A95A8;
+    }}
+    .severity-badge {{
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }}
+    .badge-critical {{ background: #FDECEA; color: #B91C1C; }}
+    .badge-major    {{ background: #FEF0E6; color: #C45000; }}
+    .badge-minor    {{ background: #FFFBEB; color: #92640A; }}
+    .badge-pass     {{ background: #ECFDF5; color: #166534; }}
+
+    .headline {{
+      font-size: 15.5px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }}
+    .narrative {{
+      font-size: 14px;
+      color: #444;
+      line-height: 1.75;
+      margin-bottom: 14px;
+    }}
+    .narrative p + p {{ margin-top: 10px; }}
+
+    .actions-label {{
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #8A95A8;
+      margin-bottom: 6px;
+    }}
+    .actions {{ list-style: none; display: flex; flex-direction: column; gap: 5px; }}
+    .actions li {{
+      font-size: 13.5px;
+      color: #333;
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.5;
+    }}
+    .actions li::before {{
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #AAA;
+      font-size: 12px;
+      top: 1px;
+    }}
+    .inspector-note {{
+      font-size: 12px;
+      color: #999;
+      font-style: italic;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #F0F0F0;
+      line-height: 1.6;
+    }}
+
+    /* ── Limitations ── */
+    .limitations-block {{
+      background: #FAFAFA;
+      border-radius: 10px;
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      border: 1px solid #E8E8E8;
+    }}
+    .limitations-block ul {{
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 10px;
+    }}
+    .limitations-block li {{
+      font-size: 13px;
+      color: #666;
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.5;
+    }}
+    .limitations-block li::before {{
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #BBB;
+    }}
+
+    /* ── Footer ── */
+    .footer {{
+      text-align: center;
+      font-size: 12px;
+      color: #AAA;
+      padding: 20px 0 0;
+      border-top: 1px solid #E0E0E0;
+      line-height: 1.7;
+    }}
+    .footer strong {{ color: #888; }}
+
+    @media (max-width: 600px) {{
+      .header {{ flex-direction: column; gap: 12px; text-align: center; padding: 16px 20px; }}
+      .header-right {{ text-align: center; }}
+      .property-meta {{ grid-template-columns: 1fr; }}
+    }}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">Inspect<span class="logo-accent">IQ</span></div>
+    <div class="logo-sub">Powered by MCAG Technologies</div>
+  </div>
+  <div class="header-right">
+    <strong>Florida Home Inspection Report</strong>
+    {escape(inspection_type.title())} Inspection
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Property Info -->
+  <div class="property-block">
+    <div class="property-address">{escape(report.get("property_address", "Address not provided"))}</div>
+    <div class="property-meta">
+      <div class="meta-row">
+        <span class="meta-label">Inspection Date:</span>
+        <span>{escape(report.get("inspection_date", ""))}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Inspector:</span>
+        <span>{escape(report.get("inspector_name", "FloridaInspect AI Agent"))}</span>
+      </div>
+      <div class="meta-row" style="grid-column: 1 / -1;">
+        <span class="meta-label">License Note:</span>
+        <span>{escape(report.get("inspector_license", ""))}</span>
+      </div>
+    </div>
+    {report_id_html}
+  </div>
+
+  <!-- Executive Summary -->
+  <div class="section-label">Executive Summary</div>
+  <div class="exec-block">
+    <p>{escape(report.get("executive_summary", ""))}</p>
+  </div>
+
+  <!-- Severity overview chips -->
+  <div class="summary-counts">
+    {count_chips()}
+  </div>
+
+  <!-- Finding Cards -->
+  <div class="section-label">Inspection Findings — {len(sections)} System{"s" if len(sections) != 1 else ""}</div>
+  <div class="findings">
+    {sections_html}
+  </div>
+
+  <!-- Limitations -->
+  <div class="limitations-block">
+    <div class="section-label" style="margin-bottom:0">Limitations of Inspection</div>
+    <ul>{limitations_html}</ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    {escape(report.get("footer", "Prepared in accordance with Florida Statute 468 Part XV"))}
+  </div>
+
+</div>
+</body>
+</html>"""
+
+
+# ── GET /report/{report_id} ───────────────────────────────────────────────────
+
+@app.get("/report/{report_id}", response_class=HTMLResponse)
+def get_report(report_id: str) -> HTMLResponse:
+    """Return a pipeline-generated report as a professional HTML page."""
+    report = reports_store.get(report_id)
+    if not report:
+        raise HTTPException(status_code=404, detail=f"Report not found: {report_id}")
+    return HTMLResponse(content=_render_report_html(report))
+
+
+# ── GET /demo-report ──────────────────────────────────────────────────────────
+
+@app.get("/demo-report", response_class=HTMLResponse)
+def demo_report_html() -> HTMLResponse:
+    """Return the pre-generated Tampa demo report as a professional HTML page.
+
+    Uses demo_report_output.json from disk — no pipeline run required.
+    Ideal for judges and demos: instant, no API key needed.
+    """
+    if not _DEMO_RESULT_PATH.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Demo report not found on disk. Run POST /demo first.",
+        )
+    report = json.loads(_DEMO_RESULT_PATH.read_text(encoding="utf-8"))
+    return HTMLResponse(content=_render_report_html(report))
