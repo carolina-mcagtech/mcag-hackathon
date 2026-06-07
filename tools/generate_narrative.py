@@ -111,7 +111,7 @@ def generate_narrative(
     last_error = ""
     for attempt in range(3):
         try:
-            response = client.models.generate_content(model="gemini-flash-latest", contents=prompt)
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
             raw = response.text.strip()
 
             if raw.startswith("```"):
@@ -155,7 +155,7 @@ def generate_executive_summary(sections: list[ReportSection]) -> str:
         sections_data = [s.model_dump() for s in sections]
 
         prompt = _SUMMARY_PROMPT.format(sections_json=json.dumps(sections_data, indent=2))
-        response = client.models.generate_content(model="gemini-flash-latest", contents=prompt)
+        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         return response.text.strip()
     except Exception:
         return _fallback_executive_summary(sections)

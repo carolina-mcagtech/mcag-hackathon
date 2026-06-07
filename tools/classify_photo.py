@@ -91,7 +91,7 @@ def classify_photo(
     prompt = _SYSTEM_PROMPT + hint_text
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=[prompt, img],
     )
     raw = response.text.strip()
@@ -134,7 +134,7 @@ def classify_photo_from_bytes(
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=[_SYSTEM_PROMPT + hint_text, image_part],
         )
     except genai_errors.ClientError as exc:
