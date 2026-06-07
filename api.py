@@ -361,12 +361,18 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     if not os.environ.get("GEMINI_API_KEY"):
         raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
 
-    image_bytes = _decode_base64_image(body.image_base64)
+    if body.image_base64:
+        image_bytes = _decode_base64_image(body.image_base64)
+        mime_type = body.mime_type
+    elif body.photo_url:
+        image_bytes, mime_type = _download_image(body.photo_url)
+    else:
+        raise HTTPException(status_code=422, detail="Either image_base64 or photo_url must be provided")
 
     try:
         finding = classify_photo_from_bytes(
             image_bytes=image_bytes,
-            mime_type=body.mime_type,
+            mime_type=mime_type,
             system_hint=body.system_hint,
             location_hint=body.location_hint,
         )
