@@ -53,6 +53,6 @@ logs/
 .coverage
 htmlcov/
 
-# Generated reports
-reports/
+# Generated reports (JSON files ignored; .gitkeep tracked to preserve dir)
+reports/*.json
 output/

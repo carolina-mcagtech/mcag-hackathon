@@ -76,7 +76,9 @@ The HTML report and JSON endpoints are pre-loaded with a real 7-finding Tampa pr
 
 ---
 
-## Demo Screenshot
+## Demo Report
+
+> Live demo: https://inspectiq-agent-production.up.railway.app/demo-report
 
 ![InspectIQ Architecture](inspectiq_architecture_finalversion.svg)
 
@@ -93,6 +95,7 @@ The HTML report and JSON endpoints are pre-loaded with a real 7-finding Tampa pr
 | `POST` | `/capture` | Photo (base64) → `FindingDraft` |
 | `POST` | `/capture-url` | Photo URL → `FindingDraft` |
 | `POST` | `/pipeline` | Photo (base64) → full report end-to-end |
+| `POST` | `/adk-pipeline` | Full ADK-orchestrated pipeline (Runner + root_agent) |
 | `GET` | `/report/{id}` | HTML report by UUID |
 
 ### Example: classify a photo by URL
@@ -286,3 +289,11 @@ ReportSection(
 Google for Startups AI Agents Challenge 2026
 
 MCAG Technologies LLC — inspectiq.ai
+
+---
+
+## Business Model
+
+- **Pricing:** $99–$179/month per licensed inspector (SaaS subscription)
+- **Acquisition:** InterNACHI Florida chapter, REBS inspection school graduates, direct outreach via FABI
+- **Liability:** Each AI-generated report is reviewed and signed by the licensed inspector of record — reducing report time from 2.5h to ~30 min while maintaining full professional accountability under FL Statute 468.8314

@@ -14,7 +14,8 @@
         "Based on the contractor's evaluation, pursue necessary repairs or replacement to ensure the roof provides adequate protection against the elements and prevents future water intrusion."
       ],
       "severity_summary": "critical",
-      "inspector_note": null
+      "inspector_note": null,
+      "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/roof.jpeg"
     },
     {
       "system": "electrical",
@@ -25,7 +26,8 @@
         "Consult with your insurance provider regarding the insurability of the property with the current electrical panel and any potential impacts on coverage or premiums."
       ],
       "severity_summary": "critical",
-      "inspector_note": null
+      "inspector_note": null,
+      "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/electrical.jpeg"
     },
     {
       "system": "electrical",
@@ -35,7 +37,8 @@
         "Have a licensed electrician evaluate the panel and wiring to install GFCI protection for these outlets."
       ],
       "severity_summary": "poor",
-      "inspector_note": null
+      "inspector_note": null,
+      "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/electrical.jpeg"
     },
     {
       "system": "plumbing",
@@ -46,7 +49,8 @@
         "Consult with a licensed plumber regarding the replacement of all polybutylene supply piping with an approved material such as copper, CPVC, or PEX, as recommended for systems with known failure history and insurance impact."
       ],
       "severity_summary": "critical",
-      "inspector_note": null
+      "inspector_note": null,
+      "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/plumbing.jpeg"
     },
     {
       "system": "Plumbing",
@@ -57,7 +61,8 @@
         "Monitor the aging water heater for signs of failure (e.g., leaks, insufficient hot water) and budget for its eventual replacement due to being beyond its typical serviceable life. Consider replacement prior to failure to avoid potential water damage."
       ],
       "severity_summary": "Poor",
-      "inspector_note": null
+      "inspector_note": null,
+      "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/plumbing.jpeg"
     },
     {
       "system": "HVAC System",
@@ -69,7 +74,8 @@
         "Replace the air filter immediately and establish a regular filter replacement schedule."
       ],
       "severity_summary": "Poor",
-      "inspector_note": null
+      "inspector_note": null,
+      "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/hvac.jpeg"
     },
     {
       "system": "structure",
@@ -80,7 +86,8 @@
         "Consider engaging a licensed geotechnical engineer or geologist to specifically evaluate for potential sinkhole activity, especially given the property's location in Hillsborough County."
       ],
       "severity_summary": "critical",
-      "inspector_note": "As a licensed home inspector in Florida, I am not licensed or qualified to determine the presence or absence of sinkhole activity or to provide structural engineering opinions. This report identifies visible indicators that warrant further investigation by qualified specialists. Refer to FL Statute 468.8319(a) and FL Statute 468.8326 regarding home inspector scope."
+      "inspector_note": "As a licensed home inspector in Florida, I am not licensed or qualified to determine the presence or absence of sinkhole activity or to provide structural engineering opinions. This report identifies visible indicators that warrant further investigation by qualified specialists. Refer to FL Statute 468.8319(a) and FL Statute 468.8326 regarding home inspector scope.",
+      "photo_url": null
     }
   ],
   "limitations": [

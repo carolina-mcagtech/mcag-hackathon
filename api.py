@@ -48,6 +48,29 @@ app = FastAPI(
 # In-memory store for pipeline-generated reports (keyed by UUID)
 reports_store: dict[str, dict[str, Any]] = {}
 
+# Persistent report storage — survives server restarts
+_REPORTS_DIR = Path(__file__).parent / "reports"
+_REPORTS_DIR.mkdir(exist_ok=True)
+
+
+def _persist_report(report_id: str, data: dict[str, Any]) -> None:
+    """Write a report dict to disk as JSON."""
+    (_REPORTS_DIR / f"{report_id}.json").write_text(
+        json.dumps(data), encoding="utf-8"
+    )
+
+
+def _load_report(report_id: str) -> dict[str, Any] | None:
+    """Return a report from memory, falling back to disk."""
+    if report_id in reports_store:
+        return reports_store[report_id]
+    path = _REPORTS_DIR / f"{report_id}.json"
+    if path.exists():
+        data = json.loads(path.read_text(encoding="utf-8"))
+        reports_store[report_id] = data  # warm the cache
+        return data
+    return None
+
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -395,8 +418,9 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     if body.photo_url and result.get("sections"):
         result["sections"][0]["photo_url"] = body.photo_url
     report_id = str(uuid.uuid4())
-    reports_store[report_id] = result
     result["report_id"] = report_id
+    reports_store[report_id] = result
+    _persist_report(report_id, result)
     return result
 
 
@@ -1016,7 +1040,7 @@ def _render_report_html(report: dict[str, Any]) -> str:
 @app.get("/report/{report_id}", response_class=HTMLResponse)
 def get_report(report_id: str) -> HTMLResponse:
     """Return a pipeline-generated report as a professional HTML page."""
-    report = reports_store.get(report_id)
+    report = _load_report(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"Report not found: {report_id}")
     return HTMLResponse(content=_render_report_html(report))
