@@ -3,173 +3,179 @@
   "inspection_date": "2024-06-15",
   "inspector_name": "FloridaInspect AI Agent",
   "inspector_license": "AI-ASSISTED REVIEW \u2014 Requires licensed inspector sign-off",
-  "executive_summary": "This home inspection revealed several significant concerns across major systems, indicating the property is in poor overall condition. Critical findings include evidence of structural cracking and foundation settlement consistent with potential sinkhole activity, and the presence of a hazardous Federal Pacific Electric Stab-Lok main electrical panel. Additionally, problematic polybutylene supply piping with an active leak, a worn asphalt shingle roof with signs of past intrusion, and several electrical and plumbing safety deficiencies were noted. Immediate professional evaluation and repairs are strongly recommended for these findings to ensure the home's safety, integrity, and insurability.",
+  "executive_summary": "The property is in overall poor condition, presenting several critical findings that require immediate professional attention. Significant structural indicators, including stair-step cracking and floor slope, suggest differential foundation settlement with potential for sinkhole activity, necessitating evaluation by a geotechnical engineer. Critical safety deficiencies include a Federal Pacific Electric Stab-Lok electrical panel and polybutylene supply piping with an active leak, both posing substantial risks. Additionally, the roof is at or nearing the end of its serviceable life with evidence of past leaks, and the HVAC system has uninsulated/disconnected ductwork while approaching its typical lifespan. Immediate assessment and remediation of these major concerns are strongly recommended to ensure safety and property integrity.",
   "sections": [
     {
       "system": "roof",
-      "headline": "Asphalt shingle roof shows significant wear, granule loss, exposed mat, and evidence of past leaks, requiring further evaluation and repair.",
-      "narrative": "The asphalt shingle roof on the rear slope of the main roof is estimated to be approximately 19 years old. Multiple shingles exhibit significant granule loss, with the underlying fiberglass mat exposed in two distinct locations near the ridge vent. There is also evidence of a prior patch repair using mismatched shingles in this vicinity. While no active water leaks were observed at the time of the inspection, the interior attic decking below shows old water staining, consistent with past water intrusion events.\n\nSignificant granule loss reduces the shingles' protection against ultraviolet (UV) light and weather, accelerating deterioration and decreasing the roof's effective lifespan. Exposed fiberglass mat indicates advanced wear and a compromised protective barrier. Past water intrusion, even if not currently active, signals a potential weakness in the roof's integrity that may lead to future leaks if not properly addressed.\n\nFlorida Statute 468.8319(a) requires licensed home inspectors to report on the estimated age and condition of roof coverings. The Florida Building Code (FBC R905) outlines requirements for roof coverings. Conditions such as significant granule loss, particularly when exceeding 25% of the shingle surface area, and visible water stains indicating prior leaks are considered deficiencies requiring notation in an inspection report and typically warrant further evaluation.",
+      "headline": "The asphalt shingle roof, approximately 19 years old, exhibits significant wear including granule loss, exposed fiberglass matting, and evidence of past leakage, indicating it is nearing or at the end of its serviceable life.",
+      "narrative": "The roof covering on the main roof \u2014 rear slope consists of asphalt shingles, approximately 19 years old. Per Florida Statute 468.8319(e), which requires reporting on roof covering material, approximate age, and condition, these findings are noted. Multiple shingles in this area show significant granule loss, with bare fiberglass mat exposed in two distinct locations near the ridge vent. This level of granule loss, particularly with exposed matting, is a critical deficiency indicator as it compromises the shingle's weather resistance and typically signifies that the asphalt shingles are nearing or have reached the end of their serviceable life, generally estimated at 20-25 years for standard shingles. Exposed matting creates an immediate vulnerability to water intrusion.\n\nEvidence of a prior patch repair using mismatched shingles was also observed. While not immediately causing active leakage at the time of inspection, such repairs can indicate past issues and may affect the overall integrity or long-term weather resistance of the roof system. Although no active water leak was present during this inspection, interior attic decking beneath this section of the roof exhibits old water staining, consistent with past leak events. This prior leakage further underscores the need for thorough evaluation of the roof's integrity and source of water intrusion.\n\nGiven the roof's advanced age and the observed deficiencies, including significant granule loss, exposed matting, and evidence of past leaks, the roof is considered to be in poor condition. Such conditions are identified as deficiency triggers under Florida Building Code (FBC R905) and would significantly impact the estimated remaining useful life required for insurance documentation, such as the Citizens 4-Point Form HO-800. These issues require immediate attention to mitigate the risk of future water damage and ensure proper weather protection. This narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Engage a licensed roofing contractor to further evaluate the worn shingles, granule loss, exposed mat, and areas of past repair.",
-        "Obtain recommendations and estimates from the contractor for necessary repairs or replacement of compromised sections of the roof covering."
+        "Engage a licensed roofing contractor to immediately evaluate the entire roof system, specifically addressing the areas of granule loss, exposed fiberglass matting, and prior repairs.",
+        "Obtain an estimate for necessary repairs or replacement of the roof covering to restore its integrity and weather resistance.",
+        "Address the source of prior leakage to prevent future water intrusion and potential damage to the interior structure.",
+        "Retain all repair documentation, including permits and contractor invoices, for future reference and insurance purposes."
       ],
-      "severity_summary": "poor",
-      "inspector_note": "This inspection identifies conditions visible at the time of inspection. A home inspection is a visual, non-invasive assessment. While no active leak was observed, past water stains indicate a history of water intrusion. Roof conditions, especially related to leaks, can be intermittent and may not be apparent during the inspection. Future performance cannot be guaranteed.",
+      "severity_summary": "critical",
+      "inspector_note": null,
       "audit_result": {
-        "passed": false,
-        "confidence": 0.95,
-        "flags": [
-          "STATUTE HALLUCINATION: Florida Statute 468.8319(a)",
-          "DISCLAIMER ABSENT"
-        ],
+        "passed": true,
+        "confidence": 1.0,
+        "flags": [],
         "verified_statutes": [
-          "FBC R905"
+          "Florida Statute 468.8319(e)",
+          "FBC R905",
+          "Citizens 4-Point Form HO-800",
+          "Florida Statute 468.8314"
         ],
-        "auditor_note": "The narrative's severity is consistent with a 'major' finding, but it hallucinates a Florida Statute reference and lacks the required AI content disclaimer."
+        "auditor_note": "The narrative's tone is consistent with a major finding, all regulatory citations are verified, and the AI disclaimer is present."
       },
       "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/roof.jpeg"
     },
     {
       "system": "electrical",
-      "headline": "The main electrical panel is a Federal Pacific Electric Stab-Lok unit with double-tapped breakers, a known safety concern and critical insurance risk.",
-      "narrative": "The main electrical panel, located in the garage, is a 150-amp Federal Pacific Electric (FPE) Stab-Lok panel. This panel contains 32 circuit breakers. We observed three circuit breakers (circuits 4, 12, and 22) with two electrical wires connected to a single terminal, a condition known as 'double-tapping'. There was no visible evidence of heat damage or corrosion within the panel at the time of the inspection. The panel label is partially legible.\n\nFederal Pacific Electric Stab-Lok circuit breaker panels have been associated with a documented manufacturing defect where the breakers may fail to trip during an overcurrent or short-circuit event. This failure can lead to overheating, potential damage to electrical wiring, and an increased risk of fire. Double-tapped circuit breakers are also considered a defect, as they can lead to overloading the breaker or loose connections, which may cause localized overheating or an arc fault. This condition is not compliant with modern electrical safety standards.\n\nDue to the known safety concerns, many insurance carriers, including Citizens Property Insurance Corporation as per their 4-Point Form HO-800 guidelines, often consider Federal Pacific Stab-Lok panels to be high-risk and may decline to provide coverage or require immediate replacement. The Florida Building Code, which adopts the National Electrical Code (NEC 2020) via Florida Statute 553.73, requires electrical components to be listed and approved for their intended use. Federal Pacific Stab-Lok panels are generally not recognized as meeting current safety standards.",
+      "headline": "Critical Safety Deficiency: Federal Pacific Electric Stab-Lok Panel and Double-Tapped Breakers Observed",
+      "narrative": "During the inspection of the main electrical panel located in the garage, a Federal Pacific Electric (FPE) Stab-Lok panel was identified, serving a 150-amp electrical service. The panel contains 32 circuit breakers, and three instances of double-tapped breakers were observed on circuits 4, 12, and 22. No evidence of heat damage or corrosion was noted inside the panel; however, the panel label is partially legible.\n\nFederal Pacific Electric Stab-Lok panels are widely associated with a known safety concern regarding their potential failure to trip under overcurrent conditions. Studies, including those by the U.S. Consumer Product Safety Commission (CPSC), have documented that these breakers may not function as intended, which can lead to overheating and pose a fire risk. Due to these documented safety issues, this panel type is classified as a Critical Safety Deficiency in accordance with Florida inspection standards, including those referenced in Florida Statute 468.8319(b).\n\nFurthermore, the presence of double-tapped breakers, where two conductors are connected to a single breaker terminal designed for only one conductor, is a recognized electrical deficiency. This condition violates National Electrical Code (NEC) 210.4(B), as adopted by Florida Statute 553.73, and can lead to loose connections, arcing, overheating, and potential fire hazards. While no immediate signs of overheating were visible, these conditions warrant professional remediation. The identification of a Federal Pacific Electric Stab-Lok panel often has significant implications for homeowner's insurance, with many carriers, including Citizens Property Insurance (as per form HO-800), deeming such panels ineligible for coverage without replacement.\n\nGiven the documented safety risks and code violations, it is strongly recommended that this electrical panel be evaluated and replaced by a qualified and licensed electrician to mitigate potential hazards and ensure compliance with current safety standards. This narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Have a licensed electrician evaluate and replace the Federal Pacific Electric Stab-Lok panel with a new, UL-listed electrical panel.",
-        "Address the double-tapped circuit breakers (circuits 4, 12, and 22) during the panel replacement to ensure proper overcurrent protection and wire termination."
+        "Have a licensed electrician evaluate and replace the Federal Pacific Electric Stab-Lok electrical panel with a new, listed, UL-approved electrical panel.",
+        "Have a licensed electrician correct all observed double-tapped circuit breakers to ensure proper and safe electrical connections."
       ],
       "severity_summary": "critical",
       "inspector_note": null,
       "audit_result": {
-        "passed": false,
+        "passed": true,
         "confidence": 1.0,
-        "flags": [
-          "Disclaimer for AI-generated content is absent."
-        ],
+        "flags": [],
         "verified_statutes": [
-          "Citizens 4-Point Form HO-800",
-          "NEC 2020",
-          "Florida Statute 553.73"
+          "Florida Statute 468.8319(b)",
+          "NEC 210.4(B)",
+          "Florida Statute 553.73",
+          "Citizens HO-800",
+          "Florida Statute 468.8314"
         ],
-        "auditor_note": "The narrative appropriately uses urgent language for a critical finding and accurately cites regulations, but lacks the required AI content disclaimer."
+        "auditor_note": "The narrative accurately reflects the critical severity of the finding, all cited statutes are verified, and the AI disclaimer is properly included."
       },
       "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/electrical.jpeg"
     },
     {
       "system": "electrical",
-      "headline": "Kitchen outlets near the sink lack required GFCI protection.",
-      "narrative": "During the inspection, it was observed that two electrical outlets located within 36 inches of the kitchen sink do not have Ground Fault Circuit Interrupter (GFCI) protection. These are standard duplex outlets, and no GFCI outlet or breaker protecting this circuit was identified at the time of inspection.\n\nGFCI devices are critical safety mechanisms designed to protect occupants from severe electrical shocks by quickly cutting off power when a ground fault is detected. In areas near water sources, such as kitchen sinks, the risk of electrical shock is significantly elevated. The absence of GFCI protection at these locations creates a potential safety hazard.\n\nAccording to the National Electrical Code (NEC) 210.8, as adopted by the Florida Building Code, all 125-volt, single-phase, 15- and 20-ampere receptacles installed within 6 feet of a sink or similar water source require GFCI protection. This condition does not meet current electrical safety standards and increases the potential for serious injury from electrical shock if water comes into contact with the outlets or connected appliances.",
+      "headline": "Electrical outlets near the kitchen sink lack required GFCI protection.",
+      "narrative": "During the inspection of the kitchen, it was observed that two electrical outlets located within 36 inches of the kitchen sink did not have ground-fault circuit-interrupter (GFCI) protection. Standard duplex outlets are currently installed, and no GFCI outlet or breaker protecting this circuit was identified.\n\nGFCI protection is a critical safety feature designed to prevent electrical shock by rapidly shutting off power when a ground fault is detected. Receptacles located near water sources, such as kitchen sinks, pose an elevated risk for electrical shock hazards if proper protection is not in place.\n\nThe National Electrical Code (NEC) Article 210.8, as adopted by the Florida Building Code, requires GFCI protection for all 125-volt and 250-volt receptacles in dwelling units, specifically noting 'Kitchen \u2014 all receptacles within 6 feet of a sink.' Florida Statute 468.8319(b) and Florida Administrative Code (FAC) 61-30 mandate that licensed home inspectors report absent GFCI protection in any required location as a safety deficiency.\n\nThis condition represents a potential safety hazard and does not align with current electrical safety standards for the location described. This narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Consult with a licensed electrician to evaluate and install appropriate Ground Fault Circuit Interrupter (GFCI) protection for the kitchen sink outlets, as required by current electrical codes."
+        "Have a licensed electrician evaluate the panel and wiring to determine the most appropriate method for providing GFCI protection to these outlets.",
+        "Install GFCI protection for all affected outlets to mitigate electrical shock hazards."
       ],
-      "severity_summary": "poor",
+      "severity_summary": "critical",
       "inspector_note": null,
       "audit_result": {
-        "passed": false,
-        "confidence": 0.98,
-        "flags": [
-          "DISCLAIMER_ABSENT"
-        ],
+        "passed": true,
+        "confidence": 1.0,
+        "flags": [],
         "verified_statutes": [
-          "NEC 210.8",
-          "Florida Building Code"
+          "NEC Article 210.8",
+          "Florida Building Code",
+          "Florida Statute 468.8319(b)",
+          "Florida Administrative Code (FAC) 61-30",
+          "Florida Statute 468.8314"
         ],
-        "auditor_note": "The narrative's severity is consistent with a 'major' finding, and all cited regulations are verified, but it lacks the required AI-generated content disclaimer."
+        "auditor_note": "The narrative accurately reflects a 'major' severity finding, all cited statutes are verified, and the AI disclaimer is present and correctly worded."
       },
       "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/electrical.jpeg"
     },
     {
       "system": "Plumbing",
-      "headline": "Polybutylene supply piping with active leak observed under kitchen sink.",
-      "narrative": "During the inspection, gray polybutylene supply piping (Quest brand, identified by stamped markings) was observed throughout the visible supply lines, including the main hot and cold supply distribution originating from the water meter. This piping is estimated to date from the original construction of the property in 1987. A small pinhole leak was observed at one compression fitting located under the kitchen sink, resulting in an active drip at the time of the inspection.\n\nPolybutylene piping is a known problematic plumbing material, commonly installed between 1978 and 1995. It has a well-documented history of premature failure due to degradation from common water disinfectants, leading to leaks and catastrophic failures. The presence of polybutylene piping, especially with an active leak, is considered a critical deficiency.\n\nMany Florida insurance carriers will not provide coverage for homes with polybutylene supply piping due to its high failure risk, as noted in documents such as the Citizens 4-Point Form HO-800 requirements. Florida Statute 468.8319(d) emphasizes the importance of identifying deficiencies in major systems like plumbing. The observed active leak at the compression fitting further highlights the inherent risks of this piping material and constitutes a deficiency according to general inspection standards and the principles outlined in the Florida Building Code Plumbing Chapters 6 (Water Supply & Distribution) and 7 (Sanitary Drainage), which require functional and leak-free plumbing systems.",
+      "headline": "Polybutylene supply piping with an active leak was observed, which is a critical deficiency.",
+      "narrative": "During the inspection, gray polybutylene supply piping, identified as 'Quest' brand by stamped markings, was observed throughout the visible supply lines. This material comprises the main hot and cold water distribution from the water meter. The piping is estimated to be original to the home's construction in 1987. An active pinhole leak was noted at a compression fitting under the kitchen sink, resulting in a continuous drip at the time of inspection.\n\nPolybutylene piping is known to have a history of premature failure due to degradation from common water disinfectants, such as chlorine, which can lead to splitting, pinhole leaks, and catastrophic failures. This material was commonly installed in homes built between approximately 1978 and 1995. The presence of polybutylene piping, especially with an active leak, is considered a critical deficiency due to its inherent unreliability.\n\nUnder Florida Statute 468.8319(d) and requirements from insurance carriers like Citizens Property Insurance Corporation (Citizens 4-Point Form HO-800), visible polybutylene piping must be reported as a critical finding requiring replacement. Many insurance providers will not cover properties with polybutylene plumbing without proof of complete replacement. The active leak under the kitchen sink requires immediate repair to prevent further water damage and should be addressed by a licensed plumbing professional. \n\nThis narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Replace all polybutylene supply piping with copper, CPVC, or PEX by a licensed plumber."
+        "Replace all visible polybutylene supply piping with approved materials such as copper, CPVC, or PEX by a licensed plumber.",
+        "Repair the active pinhole leak under the kitchen sink immediately by a licensed plumber to prevent further water damage."
       ],
       "severity_summary": "critical",
       "inspector_note": null,
       "audit_result": {
-        "passed": false,
-        "confidence": 0.98,
-        "flags": [
-          "Disclaimer missing"
-        ],
+        "passed": true,
+        "confidence": 1.0,
+        "flags": [],
         "verified_statutes": [
-          "Citizens 4-Point Form HO-800",
           "Florida Statute 468.8319(d)",
-          "Florida Building Code Plumbing Chapters 6 (Water Supply & Distribution)",
-          "Florida Building Code Plumbing Chapters 7 (Sanitary Drainage)"
+          "Citizens 4-Point Form HO-800",
+          "Florida Statute 468.8314"
         ],
-        "auditor_note": "The narrative uses urgent language consistent with a critical finding and accurately cites verified regulations. However, it fails to include the required disclaimer for AI-generated content."
+        "auditor_note": "The narrative accurately reflects the critical severity, all statutes are verified, and the AI disclaimer is present."
       },
       "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/plumbing.jpeg"
     },
     {
       "system": "plumbing",
-      "headline": "Electric water heater is at the end of its serviceable life and has an improperly terminated temperature-pressure relief (TPR) valve discharge pipe.",
-      "narrative": "The electric water heater located in the garage is a 50-gallon capacity unit, manufactured in 2009. This unit is approximately 15 years old, which is at the upper end of the typical 12-15 year serviceable life expected for most residential water heaters. No evidence of active leaks was observed at the tank or its connections at the time of the inspection.\n\nA temperature-pressure relief (TPR) valve, an essential safety device designed to release excessive pressure or temperature, was present on the unit. However, the discharge pipe for this valve terminates approximately 8 inches above the floor and is directed upward. This configuration does not comply with safety standards, as it poses a significant risk of scalding if the valve were to activate, releasing hot water and steam unexpectedly. The Florida Building Code (FBC) Plumbing Code, Chapter 6, requires that TPR valve discharge piping be installed to safely direct discharge to an approved drain or to the exterior, preventing potential injury.\n\nThe water heater's advanced age increases its susceptibility to failure, and its operational lifespan may be limited. Furthermore, water heaters 15 years or older are frequently flagged by insurance carriers, which can affect policy eligibility or premium rates. The improperly terminated TPR valve discharge pipe is a safety deficiency that requires immediate attention to prevent potential hazards.",
+      "headline": "The water heater is at the end of its expected service life, and its temperature-pressure relief (TPR) valve discharge pipe is improperly terminated, posing a scalding risk.",
+      "narrative": "An electric water heater, with a 50-gallon capacity, was observed in the garage. Based on its manufacture date of 2009, the unit is approximately 15 years old. The temperature-pressure relief (TPR) valve is present; however, its discharge pipe terminates 8 inches above the floor and is directed upward. No evidence of active leaks was observed at the tank connections during the inspection.\n\nThe water heater's age, at 15 years, places it at or beyond the typical 12-15 year serviceable life expectancy for such units. While no active leaks were noted at the time of inspection, components of older water heaters are more prone to failure, which could lead to leaks and potential property damage. The improper termination of the TPR valve discharge pipe poses a significant safety hazard. If the TPR valve activates due to excessive temperature or pressure, superheated water and steam could discharge upward, creating a substantial risk of scalding injuries to anyone nearby.\n\nFlorida Building Code (FBC) Plumbing Chapter 6-7 and Section P2803 generally require TPR valve discharge piping to terminate to a safe location, typically within 6 inches of the floor or into an indirect waste receptor, and directed downward to prevent injury. Additionally, compliance with TPR valve requirements is a specific component of the Citizens Property Insurance Corporation 4-Point Inspection Form (HO-800), where non-compliant discharge is noted as a deficiency. Florida Statute 468.8319(d) also mandates that licensed inspectors determine and document the water heater's type, age, and condition within the inspection report. This narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Consult with a licensed plumber to evaluate the condition of the water heater and determine if replacement is warranted given its age and potential impact on insurance.",
-        "Have a licensed plumber correct the termination of the temperature-pressure relief (TPR) valve discharge pipe to comply with current safety standards and Florida Building Code requirements."
+        "Have a licensed plumber evaluate and correctly extend the temperature-pressure relief (TPR) valve discharge pipe to terminate safely, as required by Florida Building Code standards, to mitigate scalding risks.",
+        "Monitor the aging water heater closely for signs of failure, such as leaks or reduced performance, and budget for its replacement given it is at or beyond its expected service life."
       ],
       "severity_summary": "poor",
-      "inspector_note": "The functionality of the TPR valve itself was not tested during the inspection as doing so can sometimes cause leaks or damage, particularly in older systems. It is recommended that a licensed plumber verify its proper operation during servicing or replacement.",
+      "inspector_note": null,
       "audit_result": {
-        "passed": false,
+        "passed": true,
         "confidence": 1.0,
-        "flags": [
-          "DISCLAIMER_ABSENT"
-        ],
+        "flags": [],
         "verified_statutes": [
-          "FBC Plumbing Code Chapter 6"
+          "FBC Plumbing Code Ch. 6-7",
+          "FBC Plumbing Code P2803",
+          "Citizens HO-800",
+          "FL Statute 468.8319(d)",
+          "FL Statute 468.8314"
         ],
-        "auditor_note": "The narrative's severity language aligns with a major finding, and the cited statute is verified. However, the required AI content disclaimer is missing."
+        "auditor_note": "The narrative's tone is consistent with a 'major' severity finding, all statute citations are verified in the provided excerpts, and the AI disclaimer is correctly included."
       },
       "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/plumbing.jpeg"
     },
     {
-      "system": "HVAC",
-      "headline": "HVAC system is operational, but significant deficiencies were noted with disconnected and uninsulated ductwork, and a heavily soiled air filter.",
-      "narrative": "The property is equipped with a York split-system heat pump, 3-ton capacity, manufactured in 2011, making the system 13 years old. During the inspection, the system was operational, and the temperature differential (delta-T) across the evaporator coil was measured at 17\u00b0F, which is within an acceptable operating range. However, several deficiencies were identified that impact the system's efficiency and indoor air quality.\n\nThe air filter was found to be heavily soiled, indicating that it has not been replaced recently. A heavily soiled air filter restricts proper airflow, which can reduce system efficiency, increase energy consumption, and potentially place undue stress on the unit. It also compromises indoor air quality by allowing dust, allergens, and other particulates to recirculate throughout the home. Regular filter replacement is essential for maintaining optimal system performance and healthy indoor air.\n\nInspection of the attic revealed two disconnected flex ductwork joints at a Y-branch leading to the master bedroom and den. Additionally, the ductwork in this attic section is uninsulated. Disconnected ductwork in an unconditioned space like an attic allows conditioned air to escape directly into the attic, rather than reaching its intended rooms. This leads to substantial energy loss, reduced comfort in the affected areas, and increased utility bills. Uninsulated ductwork further exacerbates energy waste as it allows for significant heat transfer, increasing the burden on the HVAC system. The Florida Building Code Mechanical and Energy Codes require ductwork in unconditioned spaces to be properly sealed and insulated to minimum R-6 to ensure energy efficiency and prevent condensation.",
+      "system": "HVAC System",
+      "headline": "The HVAC system is operational but exhibits multiple significant deficiencies, including disconnected and uninsulated ductwork in the attic, and an older unit approaching its expected service life.",
+      "narrative": "The residential property is equipped with a York split-system heat pump, rated at 3 tons capacity, and was manufactured in 2011, making the unit 13 years old. This age indicates the system is approaching or at the typical end of its expected serviceable life, which is generally 12-15 years for heat pumps, as per industry standards and Florida Statute 468.8319(c). The system was operational at the time of inspection, and the temperature differential (delta-T) across the evaporator coil was measured at 17\u00b0F, which falls within an acceptable operating range. However, the accessible air filter was heavily soiled, suggesting a lack of regular maintenance. A heavily soiled filter can restrict airflow, reduce efficiency, and potentially lead to damage to the system's internal components, including the evaporator coil.\n\nSignificant deficiencies were noted in the ductwork located within the attic space. Two flex duct joints at a Y-branch, which distribute conditioned air to the master bedroom and den, were found disconnected. This condition results in the loss of conditioned air into the unconditioned attic space, substantially reducing the system's energy efficiency and increasing utility costs. According to Florida Statute 468.8319(c), disconnected ductwork in the attic is a critical finding as it can lead to 20-40% conditioned air loss and may cause moisture problems by pressurizing the attic space with humid air. Furthermore, the existing ductwork in the attic section is uninsulated. All ductwork located in unconditioned attic spaces is required to be insulated to a minimum R-6 value as per the Florida Building Code (FBC) Energy Code. Uninsulated ducts contribute to significant heat gain or loss, further diminishing the system's efficiency and increasing the energy burden.\n\nThese conditions warrant prompt attention from a qualified professional. Addressing the disconnected and uninsulated ductwork is crucial for improving system efficiency, ensuring proper air distribution, and preventing potential moisture-related issues in the attic. Regular maintenance, including air filter replacement, is also essential for the longevity and efficient operation of the unit. These observations are consistent with the inspection requirements outlined in Florida Statute 468.8319(c) regarding heating and cooling equipment and ductwork condition, as well as the FBC Mechanical and Energy Codes. This narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Have a licensed HVAC contractor evaluate and service the entire system.",
-        "Address the disconnected flex ductwork joints to restore proper airflow to the master bedroom and den and ensure the ductwork is properly sealed.",
-        "Ensure all ductwork in unconditioned attic spaces is properly insulated to meet current Florida Building Code Energy Code requirements (minimum R-6).",
-        "Replace the heavily soiled air filter immediately and establish a regular maintenance schedule, including periodic filter replacement."
+        "Have a licensed HVAC contractor evaluate, repair, and properly seal all disconnected duct joints in the attic to prevent conditioned air loss.",
+        "Engage a licensed HVAC contractor to insulate all uninsulated ductwork in the attic to meet Florida Building Code Energy Code requirements (minimum R-6).",
+        "Replace the heavily soiled air filter immediately and establish a regular maintenance schedule with a licensed HVAC contractor, including periodic filter changes and system servicing.",
+        "Budget for potential replacement of the HVAC system, as it is approaching or at the end of its typical service life."
       ],
-      "severity_summary": "poor",
-      "inspector_note": "A home inspection provides a visual overview of the HVAC system's condition and readily accessible components. For a comprehensive assessment of internal components, refrigerant levels, and system longevity, a licensed HVAC contractor should perform a detailed evaluation.",
+      "severity_summary": "Poor",
+      "inspector_note": null,
       "audit_result": {
-        "passed": false,
+        "passed": true,
         "confidence": 0.95,
-        "flags": [
-          "Disclaimer missing: AI-generated content requires review by a licensed inspector before delivery to clients."
-        ],
+        "flags": [],
         "verified_statutes": [
+          "Florida Statute 468.8319(c)",
           "FBC Energy Code",
-          "FBC Mechanical Code"
+          "FBC Mechanical Code",
+          "Florida Statute 468.8314"
         ],
-        "auditor_note": "The narrative appropriately conveys major severity and accurately cites verified regulations, but it lacks the required AI-generated content disclaimer."
+        "auditor_note": "The narrative's overall tone is consistent with a 'major' finding, and all cited statutes are verified and the AI disclaimer is present."
       },
       "photo_url": "https://raw.githubusercontent.com/carolina-mcagtech/mcag-hackathon/master/docs/photos/hvac.jpeg"
     },
     {
       "system": "structure",
-      "headline": "Critical structural cracking and foundation settlement observed, consistent with potential sinkhole activity.",
-      "narrative": "During the inspection of the exterior concrete block wall at the southwest corner of the living room and the adjacent bedroom, stair-step diagonal cracking was observed, extending from the floor up to approximately 4 feet in height. Corresponding cracking was also noted on the interior drywall surface at the same corner. In this area, the floor exhibits a noticeable slope, estimated at approximately 1 inch over 8 feet.\n\nThese observed indicators, including the stair-step cracking and floor slope, are consistent with differential foundation settlement. Such conditions are considered a structural or other significant deficiency, as highlighted by Florida Statute 468.8319(a), and warrant immediate professional attention. Given Hillsborough County's known karst geology, these indicators are also consistent with potential sinkhole activity, which is a significant concern in this region.\n\nAs a home inspector, I am not licensed to determine the presence or absence of sinkhole activity; my role is to report observed conditions that may indicate a potential issue. This condition is considered critical due to its potential impact on the structural integrity and safety of the home, requiring specialized evaluation.",
+      "headline": "Critical structural indicators observed: Stair-step cracking and floor slope consistent with differential foundation settlement, with possible sinkhole activity given regional geology.",
+      "narrative": "During the inspection, stair-step diagonal cracking was observed in the concrete block exterior wall at the southwest corner of the living room and adjacent bedroom. This cracking extends from the floor to approximately 4 feet in height. Corresponding cracking was also noted on the interior drywall at the same corner. Further, the floor in this area exhibits a noticeable slope, estimated at approximately 1 inch over 8 feet. These conditions are significant and are considered indicators of differential foundation settlement.\n\nFlorida Statute 468.8319(a) requires home inspectors to examine and report on visible cracking in foundation elements, specifically noting that stair-step diagonal cracking in concrete block 'may indicate differential settlement or sinkhole activity.' The observed floor slope also aligns with commonly recognized indicators of potential foundation issues. Given Hillsborough County's known karst geology and associated sinkhole risk, these indicators warrant serious attention.\n\nWhile a visual home inspection cannot definitively determine the presence of a sinkhole or the exact cause of settlement, the observed conditions are consistent with potential differential foundation movement that may be related to sinkhole activity. The Florida Building Code (FBC Structural), particularly R401.4, stipulates that geotechnical engineer referral is required when sinkhole indicators are present. Therefore, immediate specialist evaluation is critical to ascertain the underlying cause and recommend appropriate remediation.\n\nThis narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.",
       "action_items": [
-        "Engage a licensed structural engineer to conduct a thorough evaluation of the observed foundation settlement and structural cracking to determine the root cause and recommend appropriate repairs.",
-        "Consider engaging a licensed geotechnical engineer for a specific evaluation of potential sinkhole activity, especially given the observed indicators and Hillsborough County's geological conditions."
+        "Engage a licensed structural engineer or geotechnical engineer for a comprehensive evaluation of the observed cracking, floor slope, and foundation conditions.",
+        "Consult with your insurance provider regarding potential impacts of these findings on current or future property insurance, as Florida Statute 627.706 establishes sinkhole insurance requirements."
       ],
       "severity_summary": "critical",
-      "inspector_note": "Home inspectors are not licensed to determine sinkhole activity. Further evaluation by a licensed geotechnical engineer is necessary for this determination.",
+      "inspector_note": "A home inspection is a visual, non-invasive examination. The presence of a sinkhole or exact cause of differential foundation settlement cannot be determined by this inspection. Specialist evaluation is essential to accurately diagnose the issue and provide recommendations.",
       "audit_result": {
-        "passed": false,
-        "confidence": 0.95,
-        "flags": [
-          "STATUTE HALLUCINATION: 'Florida Statute 468.8319(a)' cited in the narrative is not present in the provided VERIFIED FL REGULATION EXCERPTS.",
-          "DISCLAIMER COMPLIANCE: A note stating that AI-generated content requires review by a licensed inspector before delivery to clients is absent from the narrative."
+        "passed": true,
+        "confidence": 1.0,
+        "flags": [],
+        "verified_statutes": [
+          "Florida Statute 468.8319(a)",
+          "FBC Structural",
+          "R401.4",
+          "Florida Statute 468.8314"
         ],
-        "verified_statutes": [],
-        "auditor_note": "The narrative's severity consistency is appropriate for a critical finding, but it includes an unverified statute reference and is missing the mandatory AI disclaimer."
+        "auditor_note": "The narrative's tone is consistent with a critical finding, all cited regulations are verified, and the AI disclaimer is correctly included."
       }
     }
   ],
@@ -185,8 +191,8 @@
   "footer": "This report was prepared in accordance with Florida Statute 468 Part XV and the Florida Standards of Practice. For questions contact the inspector of record. FloridaInspect Agent \u2014 AI-assisted reporting system by MCAG Technologies.",
   "audit_summary": {
     "total": 7,
-    "passed": 0,
-    "flagged": 7,
-    "overall_passed": false
+    "passed": 7,
+    "flagged": 0,
+    "overall_passed": true
   }
 }

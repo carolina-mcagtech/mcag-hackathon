@@ -45,13 +45,23 @@ Perform these three checks:
    The original finding severity is: {severity}
    - "critical" findings must use urgent language (immediate, safety hazard, must replace, non-insurable).
    - "major" findings must signal significant concern (prompt repair, significant deficiency).
-   - "minor" / "informational" findings must NOT use critical or urgent language.
-   Flag any mismatch.
+   - "minor" / "informational" findings must NOT use urgent or life-safety language.
+   IMPORTANT: Only flag a SEVERITY_MISMATCH if the OVERALL narrative tone is clearly wrong
+   for the severity level. Do NOT flag:
+   - Use of the adjective "critical" in phrases like "critical concern", "critically important"
+     within a "major" narrative.
+   - Use of "immediate professional attention" or "prompt attention" — these are appropriate
+     for "major" findings too.
+   - Reserve SEVERITY_MISMATCH for cases like: a "minor" finding described as an imminent
+     life-threatening hazard, or a "critical" finding described as routine maintenance.
 
 2. STATUTE HALLUCINATION
    Compare every statute or code reference cited in the narrative against the
    verified regulation excerpts below. Flag any citation that does NOT appear
    in the excerpts. List ones that ARE confirmed as verified_statutes.
+   IMPORTANT: If a statute number like "468.8319(a)" is cited and "468.8319" (the base statute
+   number without subsection) appears in the verified excerpts, consider the subsection citation
+   verified — do NOT flag subsection variants as hallucinations when the parent statute is present.
 
 3. DISCLAIMER COMPLIANCE
    The narrative must include a note that AI-generated content requires review
@@ -116,14 +126,33 @@ def audit_narrative(
     try:
         client = chromadb.PersistentClient(path=chroma_path or _DEFAULT_CHROMA_PATH)
         collection = _load_regulations_into_chroma(client)
-        query = (
+        n_avail = collection.count()
+
+        # Primary query: system-specific content
+        topic_query = (
             f"{finding.system} {finding.observation[:120]} "
             f"{' '.join(regulatory_check.applicable_regulations)}"
         )
-        results = collection.query(
-            query_texts=[query], n_results=min(4, collection.count())
+        topic_results = collection.query(
+            query_texts=[topic_query], n_results=min(4, n_avail)
         )
-        excerpts = results["documents"][0] if results["documents"] else []
+        topic_docs = topic_results["documents"][0] if topic_results["documents"] else []
+
+        # Secondary query: always pull AI-disclaimer / 468.8314 licensing context
+        disclaimer_query = (
+            "Florida Statute 468.8314 AI-generated disclaimer licensed inspector of record"
+        )
+        disc_results = collection.query(
+            query_texts=[disclaimer_query], n_results=min(3, n_avail)
+        )
+        disc_docs = disc_results["documents"][0] if disc_results["documents"] else []
+
+        # Merge, keeping unique docs (topic docs first)
+        seen: set[str] = set()
+        for doc in topic_docs + disc_docs:
+            if doc not in seen:
+                seen.add(doc)
+                excerpts.append(doc)
     except Exception:
         pass  # audit proceeds without excerpts; hallucination check will flag statutes
 

@@ -78,6 +78,8 @@ Return a JSON object with these fields:
   "inspector_note": "<optional limitation or disclaimer, or null>"
 }}
 
+End the narrative with this exact sentence: 'This narrative was AI-generated and requires review and approval by the licensed inspector of record per Florida Statute 468.8314.'
+
 Return ONLY valid JSON."""
 
 _SUMMARY_PROMPT = """You are a licensed Florida home inspector. Based on the following list of report
