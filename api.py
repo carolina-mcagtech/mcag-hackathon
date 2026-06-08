@@ -20,6 +20,7 @@ import logging
 import os
 import sys
 import tempfile
+import threading
 import uuid
 from html import escape
 from pathlib import Path
@@ -48,20 +49,33 @@ app = FastAPI(
     description="AI-powered Florida home inspection report generation",
 )
 
-# ── MCP server asyncio task ───────────────────────────────────────────────────
+# ── MCP server background thread ──────────────────────────────────────────────
 
-@app.on_event("startup")
-async def startup() -> None:
-    """Launch the Florida Regulations MCP server on port 8001 as an asyncio task."""
+def _run_mcp_server() -> None:
+    """Run the MCP server on port 8001 in a dedicated thread with its own event loop.
+
+    Signal handlers are disabled so the nested uvicorn doesn't interfere with
+    the main process's signal handling on Railway/Linux.
+    """
     try:
         import uvicorn
         from mcp_server.florida_regulations_mcp import mcp_app as _mcp_app
-        config = uvicorn.Config(_mcp_app, host="0.0.0.0", port=8001, log_level="warning")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        config = uvicorn.Config(_mcp_app, host="0.0.0.0", port=8001, log_level="warning", loop="asyncio")
         server = uvicorn.Server(config)
-        asyncio.ensure_future(server.serve())
-        logging.getLogger(__name__).info("MCP server asyncio task started on port 8001")
+        server.install_signal_handlers = lambda: None  # disable — only main thread manages signals
+        loop.run_until_complete(server.serve())
     except Exception as exc:
-        logging.getLogger(__name__).warning("MCP server failed to start: %s", exc)
+        logging.getLogger(__name__).warning("MCP server exited: %s", exc)
+
+
+@app.on_event("startup")
+def startup() -> None:
+    """Launch the MCP server thread on startup."""
+    t = threading.Thread(target=_run_mcp_server, daemon=True, name="mcp-server")
+    t.start()
+    logging.getLogger(__name__).info("MCP server thread started on port 8001")
 
 
 # In-memory store for pipeline-generated reports (keyed by UUID)
