@@ -12,6 +12,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import datetime
 import json
@@ -19,7 +20,6 @@ import logging
 import os
 import sys
 import tempfile
-import threading
 import uuid
 from html import escape
 from pathlib import Path
@@ -48,29 +48,20 @@ app = FastAPI(
     description="AI-powered Florida home inspection report generation",
 )
 
-# ── MCP server background thread ──────────────────────────────────────────────
+# ── MCP server asyncio task ───────────────────────────────────────────────────
 
-_mcp_thread: threading.Thread | None = None
-
-
-def _launch_mcp_server() -> None:
-    """Start the Florida Regulations MCP server on port 8001 in a daemon thread."""
-    global _mcp_thread
+@app.on_event("startup")
+async def startup() -> None:
+    """Launch the Florida Regulations MCP server on port 8001 as an asyncio task."""
     try:
         import uvicorn
         from mcp_server.florida_regulations_mcp import mcp_app as _mcp_app
         config = uvicorn.Config(_mcp_app, host="0.0.0.0", port=8001, log_level="warning")
         server = uvicorn.Server(config)
-        _mcp_thread = threading.Thread(target=server.run, daemon=True, name="mcp-server")
-        _mcp_thread.start()
-        logging.getLogger(__name__).info("MCP server thread started on port 8001")
+        asyncio.ensure_future(server.serve())
+        logging.getLogger(__name__).info("MCP server asyncio task started on port 8001")
     except Exception as exc:
         logging.getLogger(__name__).warning("MCP server failed to start: %s", exc)
-
-
-@app.on_event("startup")
-def startup() -> None:
-    _launch_mcp_server()
 
 
 # In-memory store for pipeline-generated reports (keyed by UUID)
