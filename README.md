@@ -78,7 +78,7 @@ The HTML report and JSON endpoints are pre-loaded with a real 7-finding Tampa pr
 
 ## Demo Screenshot
 
-![InspectIQ Report](docs/photos/report-screenshot.png)
+![InspectIQ Architecture](inspectiq_architecture_finalversion.svg)
 
 ---
 
@@ -283,6 +283,6 @@ ReportSection(
 
 ## Built For
 
-- Google for Startups AI Agents Challenge 2026 (deadline Jun 12)
+Google for Startups AI Agents Challenge 2026
 
 MCAG Technologies LLC — inspectiq.ai
