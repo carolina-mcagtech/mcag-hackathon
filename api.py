@@ -12,7 +12,6 @@ Endpoints:
 
 from __future__ import annotations
 
-import asyncio
 import base64
 import datetime
 import json
@@ -20,7 +19,6 @@ import logging
 import os
 import sys
 import tempfile
-import threading
 import uuid
 from html import escape
 from pathlib import Path
@@ -48,45 +46,6 @@ app = FastAPI(
     version="1.0.0",
     description="AI-powered Florida home inspection report generation",
 )
-
-# ── MCP server background thread ──────────────────────────────────────────────
-
-def _run_mcp_server() -> None:
-    """Run the MCP server on port 8001 in a dedicated thread with its own event loop.
-
-    Signal handlers are disabled so the nested uvicorn doesn't interfere with
-    the main process's signal handling on Railway/Linux.
-    """
-    try:
-        import uvicorn
-        from mcp_server.florida_regulations_mcp import mcp_app as _mcp_app
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        config = uvicorn.Config(_mcp_app, host="0.0.0.0", port=8001, log_level="warning", loop="asyncio")
-        server = uvicorn.Server(config)
-        server.install_signal_handlers = lambda: None  # disable — only main thread manages signals
-        loop.run_until_complete(server.serve())
-    except Exception as exc:
-        logging.getLogger(__name__).warning("MCP server exited: %s", exc)
-
-
-@app.on_event("startup")
-def startup() -> None:
-    """Pre-seed ChromaDB then launch the MCP server thread."""
-    # Seed ChromaDB once at startup so neither the MCP server nor the direct
-    # fallback path race to write the empty database on first request.
-    try:
-        import chromadb as _chromadb
-        from tools.validate_regulation import _DEFAULT_CHROMA_PATH, _load_regulations_into_chroma
-        client = _chromadb.PersistentClient(path=_DEFAULT_CHROMA_PATH)
-        _load_regulations_into_chroma(client)
-        logging.getLogger(__name__).info("ChromaDB pre-seeded")
-    except Exception as exc:
-        logging.getLogger(__name__).warning("ChromaDB pre-seed failed: %s", exc)
-    t = threading.Thread(target=_run_mcp_server, daemon=True, name="mcp-server")
-    t.start()
-    logging.getLogger(__name__).info("MCP server thread started on port 8001")
-
 
 # In-memory store for pipeline-generated reports (keyed by UUID)
 reports_store: dict[str, dict[str, Any]] = {}
@@ -163,35 +122,7 @@ _DEMO_RESULT_PATH = Path(__file__).parent / "demo_report_output.json"
 
 @app.get("/health")
 def health() -> dict[str, Any]:
-    mcp_ok = False
-    try:
-        r = httpx.get("http://localhost:8001/health", timeout=2.0)
-        mcp_ok = r.status_code == 200
-    except Exception:
-        pass
-    return {
-        "status": "ok",
-        "service": "InspectIQ Agent",
-        "mcp_server": "running" if mcp_ok else "starting",
-        "tools": ["query_florida_regulations"],
-    }
-
-
-# ── GET /mcp/tools ────────────────────────────────────────────────────────────
-
-@app.get("/mcp/tools")
-def mcp_tools() -> dict[str, Any]:
-    """List tools exposed by the Florida Regulations MCP server."""
-    try:
-        resp = httpx.post(
-            "http://localhost:8001/",
-            json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
-            timeout=5.0,
-        )
-        resp.raise_for_status()
-        return resp.json().get("result", {})
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"MCP server unavailable: {exc}")
+    return {"status": "ok", "service": "InspectIQ Agent"}
 
 
 # ── GET /demo-result ──────────────────────────────────────────────────────────
