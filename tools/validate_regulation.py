@@ -2,18 +2,29 @@
 validate_regulation — RAG tool that checks a FindingDraft against Florida
 home inspection regulations stored in ChromaDB and returns a regulatory verdict.
 
+Query path:
+    1. MCP server (http://localhost:8001 or MCP_SERVER_URL) — preferred
+    2. Direct ChromaDB — fallback when MCP server is unavailable
+
 Used by: AnalyzeAgent
 """
 
+import json
+import logging
 import os
 from pathlib import Path
 from typing import Optional
 
 import chromadb
+import httpx
 from chromadb.utils import embedding_functions
 from pydantic import BaseModel, Field
 
 from tools.classify_photo import FindingDraft
+
+logger = logging.getLogger(__name__)
+
+_MCP_SERVER_URL = os.environ.get("MCP_SERVER_URL", "http://localhost:8001")
 
 
 _REGULATIONS_PATH = Path(__file__).parent.parent / "data" / "fl_regulations.txt"
@@ -83,28 +94,47 @@ def _load_regulations_into_chroma(client: chromadb.Client) -> chromadb.Collectio
 _DEFAULT_CHROMA_PATH = str(Path(__file__).parent.parent / "chroma_db")
 
 
+def _query_via_mcp(query: str, n_results: int = _N_RESULTS) -> list[str] | None:
+    """Query regulations via the MCP server. Returns excerpts or None on failure."""
+    try:
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {
+                "name": "query_florida_regulations",
+                "arguments": {"query": query, "n_results": n_results},
+            },
+        }
+        resp = httpx.post(_MCP_SERVER_URL, json=payload, timeout=5.0)
+        resp.raise_for_status()
+        result = resp.json().get("result", {})
+        if result.get("isError"):
+            return None
+        content = result.get("content", [])
+        if content:
+            return json.loads(content[0]["text"])
+    except Exception:
+        pass
+    return None
+
+
 def validate_regulation(
     finding: FindingDraft,
     chroma_path: Optional[str] = None,
 ) -> RegulatoryCheck:
     """Check a FindingDraft against Florida home inspection regulations via RAG.
 
-    Embeds the finding, retrieves the most relevant regulatory passages from
-    ChromaDB, then synthesises a RegulatoryCheck using the retrieved context.
+    Tries the MCP server first; falls back to direct ChromaDB if unavailable.
 
     Args:
         finding: A FindingDraft produced by classify_photo.
-        chroma_path: Path for ChromaDB persistence directory.
-                     Defaults to ./chroma_db in the project root.
+        chroma_path: Override path for ChromaDB (used by direct fallback only).
 
     Returns:
         RegulatoryCheck with applicable regulations, compliance verdict, and
         recommended actions.
     """
-    client = chromadb.PersistentClient(path=chroma_path or _DEFAULT_CHROMA_PATH)
-
-    collection = _load_regulations_into_chroma(client)
-
     query = (
         f"system: {finding.system}. "
         f"location: {finding.location}. "
@@ -112,11 +142,17 @@ def validate_regulation(
         f"severity: {finding.severity}."
     )
 
-    results = collection.query(query_texts=[query], n_results=min(_N_RESULTS, collection.count()))
-    excerpts: list[str] = results["documents"][0] if results["documents"] else []
+    excerpts = _query_via_mcp(query, n_results=_N_RESULTS)
+    if excerpts is not None:
+        logger.info("validate_regulation: queried via MCP server")
+    else:
+        logger.info("validate_regulation: MCP unavailable, using direct ChromaDB")
+        client = chromadb.PersistentClient(path=chroma_path or _DEFAULT_CHROMA_PATH)
+        collection = _load_regulations_into_chroma(client)
+        results = collection.query(query_texts=[query], n_results=min(_N_RESULTS, collection.count()))
+        excerpts = results["documents"][0] if results["documents"] else []
 
-    regulation_check = _synthesise_check(finding, excerpts)
-    return regulation_check
+    return _synthesise_check(finding, excerpts)
 
 
 def _synthesise_check(finding: FindingDraft, excerpts: list[str]) -> RegulatoryCheck:

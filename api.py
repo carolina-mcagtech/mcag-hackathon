@@ -15,9 +15,11 @@ from __future__ import annotations
 import base64
 import datetime
 import json
+import logging
 import os
 import sys
 import tempfile
+import threading
 import uuid
 from html import escape
 from pathlib import Path
@@ -45,6 +47,31 @@ app = FastAPI(
     version="1.0.0",
     description="AI-powered Florida home inspection report generation",
 )
+
+# ── MCP server background thread ──────────────────────────────────────────────
+
+_mcp_thread: threading.Thread | None = None
+
+
+def _launch_mcp_server() -> None:
+    """Start the Florida Regulations MCP server on port 8001 in a daemon thread."""
+    global _mcp_thread
+    try:
+        import uvicorn
+        from mcp_server.florida_regulations_mcp import mcp_app as _mcp_app
+        config = uvicorn.Config(_mcp_app, host="0.0.0.0", port=8001, log_level="warning")
+        server = uvicorn.Server(config)
+        _mcp_thread = threading.Thread(target=server.run, daemon=True, name="mcp-server")
+        _mcp_thread.start()
+        logging.getLogger(__name__).info("MCP server thread started on port 8001")
+    except Exception as exc:
+        logging.getLogger(__name__).warning("MCP server failed to start: %s", exc)
+
+
+@app.on_event("startup")
+def startup() -> None:
+    _launch_mcp_server()
+
 
 # In-memory store for pipeline-generated reports (keyed by UUID)
 reports_store: dict[str, dict[str, Any]] = {}
@@ -120,8 +147,36 @@ _DEMO_RESULT_PATH = Path(__file__).parent / "demo_report_output.json"
 # ── GET /health ───────────────────────────────────────────────────────────────
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "service": "InspectIQ Agent"}
+def health() -> dict[str, Any]:
+    mcp_ok = False
+    try:
+        r = httpx.get("http://localhost:8001/health", timeout=2.0)
+        mcp_ok = r.status_code == 200
+    except Exception:
+        pass
+    return {
+        "status": "ok",
+        "service": "InspectIQ Agent",
+        "mcp_server": "running" if mcp_ok else "starting",
+        "tools": ["query_florida_regulations"],
+    }
+
+
+# ── GET /mcp/tools ────────────────────────────────────────────────────────────
+
+@app.get("/mcp/tools")
+def mcp_tools() -> dict[str, Any]:
+    """List tools exposed by the Florida Regulations MCP server."""
+    try:
+        resp = httpx.post(
+            "http://localhost:8001/",
+            json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
+            timeout=5.0,
+        )
+        resp.raise_for_status()
+        return resp.json().get("result", {})
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"MCP server unavailable: {exc}")
 
 
 # ── GET /demo-result ──────────────────────────────────────────────────────────

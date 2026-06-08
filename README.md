@@ -57,9 +57,11 @@ Field Photo
 
 | Agent | Model | Input → Output |
 |-------|-------|----------------|
-| **CaptureAgent** | Gemini 2.0 Flash Vision | Photo bytes → `FindingDraft` |
-| **AnalyzeAgent** | Gemini 1.5 Pro + ChromaDB RAG | `FindingDraft` → `RegulatoryCheck` |
-| **ReportAgent** | Gemini 1.5 Pro | Findings + Checks → `FullReport` |
+| **CaptureAgent** | Gemini 2.5 Flash Vision | Photo bytes → `FindingDraft` |
+| **AnalyzeAgent** | Gemini 2.5 Flash + ChromaDB RAG | `FindingDraft` → `RegulatoryCheck` |
+| **ReportAgent** | Gemini 2.5 Flash | Findings + Checks → `FullReport` |
+
+The Analyze Agent connects to Florida regulations via an **MCP (Model Context Protocol) server** — a dedicated tool server that exposes ChromaDB as a secure, queryable knowledge base. This follows Google ADK's recommended pattern for external tool connectivity.
 
 ---
 
