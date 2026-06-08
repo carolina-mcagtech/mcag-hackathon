@@ -320,9 +320,19 @@ The Florida market is the proof of concept. The architecture scales to any regul
 - FABI (Florida Association of Building Inspectors)
 
 ### Market Validation
-- The average Florida home inspector spends 10-15 hours/week writing reports (industry data, 2025)
-- Independent inspector reviews confirm: "After a 3-hour inspection, I spend almost an equal amount of time refining the report" (Capterra, HomeGauge user)
-- REBS (30-year FL licensed inspector, school operator) confirmed report writing is the #1 time bottleneck for new inspectors
+
+> "With Spectora, it's: stop, navigate to the right section, find the right comment, take the picture, put arrows on it — at least 10X the amount of time. I never see Spectora saving me any time onsite. The opposite, actually."
+> — InterNACHI CPI inspector, 20+ years experience (May 2026)
+
+> "I've been unhappy with the Spectora platform for at least a year. The more changes they make, the more buggy and time consuming it has become."
+> — InterNACHI CPI inspector (May 2026)
+
+> "An AI feature that allows the user to click a photo and AI automatically attaches it to the correct narrative or creates a new narrative in the correct section — that's what I want."
+> — InterNACHI CPI inspector describing ideal tool (May 2026)
+
+- Industry data: average inspector spends 10-15 hours/week writing reports (SpecNGo market research, 2025)
+- InterNACHI forum thread (May 2026, 88 likes, 21 users): active discussion comparing Spectora vs HomeGauge vs HIP, with multiple inspectors expressing frustration and seeking alternatives
+- REBS (30-year FL licensed inspector): confirmed report writing is #1 time bottleneck for new inspectors
 
 ### Competitive Landscape
 | Tool | Market Position | InspectIQ Advantage |
