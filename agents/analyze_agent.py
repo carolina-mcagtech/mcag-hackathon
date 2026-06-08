@@ -103,7 +103,7 @@ def _flag_critical_findings_tool(regulatory_checks: list[dict]) -> dict:
 
 analyze_agent = Agent(
     name="analyze_agent",
-    model="gemini-1.5-pro",
+    model="gemini-2.0-flash",
     description=(
         "Validates inspection findings against Florida home inspection regulations using RAG. "
         "Applies knowledge of Florida Statute 468, 4-Point inspection requirements, Wind Mitigation "

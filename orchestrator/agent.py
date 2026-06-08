@@ -26,7 +26,7 @@ from agents.report_agent import report_agent
 
 root_agent = Agent(
     name="floridainspect_orchestrator",
-    model="gemini-1.5-pro",
+    model="gemini-2.0-flash",
     description=(
         "FloridaInspect root orchestrator. Coordinates a four-agent Florida home inspection "
         "workflow: photo classification (CaptureAgent) → regulatory validation (AnalyzeAgent) "

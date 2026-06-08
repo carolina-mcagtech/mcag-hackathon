@@ -148,10 +148,10 @@ def _format_report_text_tool(report_dict: dict) -> str:
 
 report_agent = Agent(
     name="report_agent",
-    model="gemini-1.5-pro",
+    model="gemini-2.0-flash",
     description=(
         "Generates professional Florida home inspection report narratives from validated findings. "
-        "Uses Gemini 1.5 Pro to write clear, regulation-compliant report sections per Florida "
+        "Uses Gemini 2.0 Flash to write clear, regulation-compliant report sections per Florida "
         "Statute 468.8326. Assembles a FullReport with executive summary, system sections, "
         "corrective actions, and required disclaimers suitable for client delivery or "
         "insurance underwriter submission."

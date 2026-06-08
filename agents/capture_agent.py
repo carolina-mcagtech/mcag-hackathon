@@ -60,7 +60,7 @@ def _classify_photos_tool(photo_paths: list[str], location_hints: list[str] | No
 
 capture_agent = Agent(
     name="capture_agent",
-    model="gemini-1.5-flash",
+    model="gemini-2.0-flash",
     description=(
         "Processes inspection photos using Gemini Vision. Accepts a list of photo paths "
         "and returns structured FindingDraft observations for each image. This is the "
