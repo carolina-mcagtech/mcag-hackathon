@@ -3,10 +3,11 @@ api.py — FastAPI HTTP interface for FloridaInspect Agent.
 Deployed on Railway via Procfile / railway.json.
 
 Endpoints:
-    GET  /health       — liveness probe
-    GET  /demo-result  — return cached AI demo report instantly (no pipeline run)
-    POST /demo         — run the built-in 7-finding demo scenario
-    POST /inspect      — run Analyze + Report agents on caller-supplied findings
+    GET  /health          — liveness probe
+    GET  /demo-result     — return cached AI demo report instantly (no pipeline run)
+    POST /demo            — run the built-in 7-finding demo scenario
+    POST /inspect         — run Analyze + Report agents on caller-supplied findings
+    POST /adk-pipeline    — full pipeline via Google ADK Runner + root_agent
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ import datetime
 import json
 import os
 import sys
+import tempfile
 import uuid
 from html import escape
 from pathlib import Path
@@ -395,6 +397,115 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     report_id = str(uuid.uuid4())
     reports_store[report_id] = result
     result["report_id"] = report_id
+    return result
+
+
+# ── POST /adk-pipeline ───────────────────────────────────────────────────────
+
+@app.post("/adk-pipeline")
+def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
+    """Run the full pipeline via the Google ADK orchestrator (root_agent).
+
+    Unlike /pipeline — which calls tools directly — this endpoint uses the real
+    Google ADK Runner with root_agent coordinating three sub-agents:
+
+      CaptureAgent (Gemini 2.5 Flash Vision)
+        → AnalyzeAgent (ChromaDB RAG + FL regulations)
+          → ReportAgent (Gemini narrative generation)
+
+    The photo is written to a temp file so CaptureAgent can read it by path,
+    matching the same contract as the CLI (main.py --photos).
+
+    Expect 60–120s — three sequential LLM calls plus RAG retrieval.
+
+    Example::
+
+        curl -X POST /adk-pipeline -H "Content-Type: application/json" -d '{
+          "photo_url": "https://example.com/panel.jpg",
+          "inspection_type": "4-point",
+          "property_address": "123 Main St, Tampa FL 33601"
+        }'
+    """
+    from google.adk.runners import Runner
+    from google.adk.sessions import InMemorySessionService
+    from google.genai.types import Content, Part
+
+    from orchestrator.agent import root_agent
+
+    if not os.environ.get("GEMINI_API_KEY"):
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY not configured")
+
+    if body.image_base64:
+        image_bytes = _decode_base64_image(body.image_base64)
+        mime_type = body.mime_type
+    elif body.photo_url:
+        image_bytes, mime_type = _download_image(body.photo_url)
+    else:
+        raise HTTPException(
+            status_code=422,
+            detail="Either image_base64 or photo_url must be provided",
+        )
+
+    ext = ".jpg" if "jpeg" in mime_type or "jpg" in mime_type else ".png"
+    tmp_path: str | None = None
+
+    try:
+        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+            tmp.write(image_bytes)
+            tmp_path = tmp.name
+
+        session_service = InMemorySessionService()
+        runner = Runner(
+            agent=root_agent,
+            app_name="floridainspect",
+            session_service=session_service,
+        )
+        session = session_service.create_session(
+            app_name="floridainspect", user_id="inspector"
+        )
+
+        property_address = body.property_address or "Address not provided"
+        inspection_date = body.inspection_date or datetime.date.today().isoformat()
+
+        payload = json.dumps({
+            "photo_paths": [tmp_path],
+            "property_address": property_address,
+            "inspection_date": inspection_date,
+            "inspection_type": body.inspection_type,
+            "location_hints": [body.location_hint],
+        })
+
+        message = Content(role="user", parts=[Part(text=payload)])
+
+        final_text = ""
+        for event in runner.run(
+            user_id="inspector",
+            session_id=session.id,
+            new_message=message,
+        ):
+            if event.is_final_response():
+                for part in event.content.parts:
+                    if part.text:
+                        final_text = part.text
+
+    finally:
+        if tmp_path:
+            Path(tmp_path).unlink(missing_ok=True)
+
+    report_id = str(uuid.uuid4())
+    result: dict[str, Any] = {
+        "report_id": report_id,
+        "adk_orchestrated": True,
+        "orchestrator": "floridainspect_orchestrator",
+        "agents_used": ["capture_agent", "analyze_agent", "report_agent"],
+        "property_address": property_address,
+        "inspection_date": inspection_date,
+        "inspection_type": body.inspection_type,
+        "report": final_text,
+    }
+    if body.photo_url:
+        result["photo_url"] = body.photo_url
+
     return result
 
 
