@@ -148,7 +148,7 @@ def demo_result() -> dict[str, Any]:
 @app.post("/demo")
 def demo() -> dict[str, Any]:
     """Run the built-in 7-finding Tampa demo scenario and return the full report."""
-findings = [FindingDraft.model_validate(f) for f in MOCK_FINDINGS]
+    findings = [FindingDraft.model_validate(f) for f in MOCK_FINDINGS]
     return _run_pipeline(
         findings=findings,
         property_address=PROPERTY_ADDRESS,
@@ -238,7 +238,7 @@ def inspect(body: InspectRequest) -> dict[str, Any]:
           "inspection_type": "4-point"
         }'
     """
-if not body.findings:
+    if not body.findings:
         raise HTTPException(status_code=422, detail="findings list must not be empty")
 
     finding_objects = [f.to_finding_draft() for f in body.findings]
@@ -315,7 +315,7 @@ def capture(body: PhotoBase64Request) -> dict[str, Any]:
           "location_hint": "main electrical panel"
         }'
     """
-image_bytes = _decode_base64_image(body.image_base64)
+    image_bytes = _decode_base64_image(body.image_base64)
 
     try:
         finding = classify_photo_from_bytes(
@@ -351,7 +351,7 @@ def capture_url(body: PhotoUrlRequest) -> dict[str, Any]:
           "inspection_type": "4-point"
         }'
     """
-image_bytes, mime_type = _download_image(body.image_url)
+    image_bytes, mime_type = _download_image(body.image_url)
 
     try:
         finding = classify_photo_from_bytes(
@@ -391,7 +391,7 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
           "property_address": "123 Main St, Tampa, FL 33601"
         }'
     """
-if body.image_base64:
+    if body.image_base64:
         image_bytes = _decode_base64_image(body.image_base64)
         mime_type = body.mime_type
     elif body.photo_url:
@@ -461,7 +461,7 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
 
     from orchestrator.agent import root_agent
 
-if body.image_base64:
+    if body.image_base64:
         image_bytes = _decode_base64_image(body.image_base64)
         mime_type = body.mime_type
     elif body.photo_url:
