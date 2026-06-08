@@ -583,10 +583,14 @@ def _get_demo_photo_url(system: str) -> Optional[str]:
 
 
 def _inject_demo_photos(report: dict[str, Any]) -> dict[str, Any]:
-    """Return a shallow copy of report with photo_url injected into each section."""
+    """Return a shallow copy of report with photo_url set for each section.
+
+    Existing photo_url values (e.g. real REBS photos from demo_report_output.json)
+    are preserved. A picsum.photos placeholder is only used when no URL exists.
+    """
     report = dict(report)
     report["sections"] = [
-        {**s, "photo_url": _get_demo_photo_url(s.get("system", ""))}
+        {**s, "photo_url": s.get("photo_url") or _get_demo_photo_url(s.get("system", ""))}
         for s in (report.get("sections") or [])
     ]
     return report
