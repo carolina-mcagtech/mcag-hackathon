@@ -549,6 +549,8 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     if body.photo_url:
         result["photo_url"] = body.photo_url
 
+    reports_store[report_id] = result
+    _persist_report(report_id, result)
     return result
 
 
@@ -712,6 +714,13 @@ def _render_report_html(report: dict[str, Any]) -> str:
     limitations_html = "\n".join(
         f"<li>{escape(lim)}</li>" for lim in limitations
     )
+
+    # ADK pipeline reports carry a plain-text "report" field instead of sections.
+    adk_report_text = report.get("report", "") if not sections else ""
+    adk_report_html = ""
+    if adk_report_text:
+        safe_text = escape(adk_report_text).replace("\n\n", "</p><p>").replace("\n", "<br>")
+        adk_report_html = f'<div class="adk-report-block"><p>{safe_text}</p></div>'
 
     report_id = report.get("report_id", "")
     report_id_html = (
@@ -964,6 +973,20 @@ def _render_report_html(report: dict[str, Any]) -> str:
     .audit-pass {{ background: #ECFDF5; color: #166534; }}
     .audit-warn {{ background: #FEF3C7; color: #92400E; }}
 
+    /* ── ADK plain-text report block ── */
+    .adk-report-block {{
+      background: white;
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      font-size: 14px;
+      color: #333;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }}
+    .adk-report-block p + p {{ margin-top: 12px; }}
+
     /* ── Limitations ── */
     .limitations-block {{
       background: #FAFAFA;
@@ -1067,6 +1090,7 @@ def _render_report_html(report: dict[str, Any]) -> str:
   <div class="findings">
     {sections_html}
   </div>
+  {adk_report_html}
 
   <!-- Limitations -->
   <div class="limitations-block">
