@@ -446,7 +446,7 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
 # ── POST /adk-pipeline ───────────────────────────────────────────────────────
 
 @app.post("/adk-pipeline")
-def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
+async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     """Run the full pipeline via the Google ADK orchestrator (root_agent).
 
     Unlike /pipeline — which calls tools directly — this endpoint uses the real
@@ -503,7 +503,7 @@ def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
             app_name="floridainspect",
             session_service=session_service,
         )
-        session = session_service.create_session(
+        session = await session_service.create_session(
             app_name="floridainspect", user_id="inspector"
         )
 
