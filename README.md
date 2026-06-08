@@ -306,6 +306,14 @@ MCAG Technologies LLC — inspectiq.ai
 
 > InspectIQ AI agent is included in Professional tier and above.
 
+### Market Expansion
+While the initial market is Florida — the highest concentration of 4-Point and Wind Mitigation inspections in the US, driven by Citizens Insurance requirements — the multi-agent architecture is regulation-agnostic by design. The RAG layer can be re-trained on any regulatory corpus. Planned EMEA expansion targets:
+- **UK:** RICS Home Survey Standard (Level 2 and Level 3 reports)
+- **Spain:** ITE (Inspección Técnica de Edificios) — mandatory building inspections for structures over 30 years old
+- **Germany:** Energieausweis (energy performance certificates) + Baugutachten (structural surveys)
+
+The Florida market is the proof of concept. The architecture scales to any regulated inspection market.
+
 ### Acquisition Channels
 - InterNACHI Florida chapter (largest inspector association in FL)
 - REBS inspection school graduates (direct pipeline — school reopening 2026, ~30-60 new inspectors/year)
