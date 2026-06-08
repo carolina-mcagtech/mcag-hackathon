@@ -11,6 +11,13 @@ import time
 from typing import Optional
 
 from google import genai
+
+_GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "mcag-hackathon")
+_GCP_LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+
+def _gemini_client() -> genai.Client:
+    return genai.Client(vertexai=True, project=_GCP_PROJECT, location=_GCP_LOCATION)
 from pydantic import BaseModel, Field
 
 from tools.audit_narrative import AuditResult
@@ -108,11 +115,7 @@ def generate_narrative(
     Returns:
         ReportSection with professional narrative text and action items.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise EnvironmentError("GEMINI_API_KEY environment variable is not set")
-
-    client = genai.Client(api_key=api_key)
+    client = _gemini_client()
 
     prompt = _NARRATIVE_PROMPT.format(
         finding_json=finding.model_dump_json(indent=2),
@@ -155,12 +158,8 @@ def generate_executive_summary(sections: list[ReportSection]) -> str:
     if not sections:
         return "No inspection sections were generated. Please review individual findings above."
 
-    api_key = os.environ.get("GEMINI_API_KEY", "")
-    if not api_key or api_key == "your_key_here":
-        return _fallback_executive_summary(sections)
-
     try:
-        client = genai.Client(api_key=api_key)
+        client = _gemini_client()
 
         import json
         sections_data = [s.model_dump() for s in sections]

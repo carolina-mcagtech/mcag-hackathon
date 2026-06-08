@@ -2,7 +2,7 @@
 
 **Autonomous multi-agent AI pipeline that automates Florida home inspection reports — from field photo to regulatory-compliant narrative in minutes.**
 
-[![Railway](https://img.shields.io/badge/deployed-Railway-7B2FBE?logo=railway)](https://inspectiq-agent-production.up.railway.app/health)
+[![Cloud Run](https://img.shields.io/badge/deployed-Cloud%20Run-4285F4?logo=googlecloud)](https://inspectiq-agent-production.up.railway.app/health)
 [![Python](https://img.shields.io/badge/python-3.13-blue?logo=python)](https://www.python.org/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-multi--agent-4285F4?logo=google)](https://google.github.io/adk-docs/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -130,12 +130,12 @@ curl -X POST https://inspectiq-agent-production.up.railway.app/pipeline \
 | Layer | Technology |
 |-------|-----------|
 | Multi-agent orchestration | Google ADK |
-| Photo classification | Gemini 2.0 Flash Vision |
-| Regulatory analysis + narrative | Gemini 1.5 Pro |
+| Photo classification | Gemini 2.5 Flash Vision |
+| Regulatory analysis + narrative | Gemini 2.5 Flash (Vertex AI) |
 | Vector store (FL regulations) | ChromaDB |
 | HTTP API | FastAPI + Uvicorn |
-| Production deployment | Railway |
-| Runtime | Python 3.13 |
+| Production deployment | Cloud Run (us-central1) |
+| Runtime | Python 3.11 |
 
 ---
 

@@ -12,6 +12,13 @@ from typing import Optional
 
 import chromadb
 from google import genai
+
+_GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "mcag-hackathon")
+_GCP_LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+
+def _gemini_client() -> genai.Client:
+    return genai.Client(vertexai=True, project=_GCP_PROJECT, location=_GCP_LOCATION)
 from pydantic import BaseModel, Field
 
 from tools.classify_photo import FindingDraft
@@ -111,16 +118,6 @@ def audit_narrative(
     Returns:
         AuditResult with pass/fail verdict, specific flags, and verified statutes.
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        return AuditResult(
-            passed=True,
-            confidence=0.0,
-            flags=[],
-            verified_statutes=[],
-            auditor_note="Audit skipped — GEMINI_API_KEY not configured.",
-        )
-
     # Retrieve regulation excerpts for statute verification
     excerpts: list[str] = []
     try:
@@ -156,7 +153,7 @@ def audit_narrative(
     except Exception:
         pass  # audit proceeds without excerpts; hallucination check will flag statutes
 
-    gemini_client = genai.Client(api_key=api_key)
+    gemini_client = _gemini_client()
     prompt = _AUDIT_PROMPT.format(
         severity=finding.severity,
         finding_json=finding.model_dump_json(indent=2),

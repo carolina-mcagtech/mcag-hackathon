@@ -12,6 +12,13 @@ from typing import Optional
 
 from google import genai
 from google.genai import types
+
+_GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT", "mcag-hackathon")
+_GCP_LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
+
+
+def _gemini_client() -> genai.Client:
+    return genai.Client(vertexai=True, project=_GCP_PROJECT, location=_GCP_LOCATION)
 from PIL import Image
 from pydantic import BaseModel, Field
 
@@ -74,11 +81,7 @@ def classify_photo(
     if not path.exists():
         raise FileNotFoundError(f"Image not found: {image_path}")
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise EnvironmentError("GEMINI_API_KEY environment variable is not set")
-
-    client = genai.Client(api_key=api_key)
+    client = _gemini_client()
 
     img = Image.open(path)
 
@@ -118,11 +121,7 @@ def classify_photo_from_bytes(
     """Variant of classify_photo that accepts raw bytes instead of a file path."""
     from google.genai import errors as genai_errors  # local import to avoid top-level dep
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        raise EnvironmentError("GEMINI_API_KEY environment variable is not set")
-
-    client = genai.Client(api_key=api_key)
+    client = _gemini_client()
 
     image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
 
