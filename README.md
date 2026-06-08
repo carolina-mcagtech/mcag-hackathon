@@ -319,6 +319,21 @@ The Florida market is the proof of concept. The architecture scales to any regul
 - REBS inspection school graduates (direct pipeline — school reopening 2026, ~30-60 new inspectors/year)
 - FABI (Florida Association of Building Inspectors)
 
+### Market Validation
+- The average Florida home inspector spends 10-15 hours/week writing reports (industry data, 2025)
+- Independent inspector reviews confirm: "After a 3-hour inspection, I spend almost an equal amount of time refining the report" (Capterra, HomeGauge user)
+- REBS (30-year FL licensed inspector, school operator) confirmed report writing is the #1 time bottleneck for new inspectors
+
+### Competitive Landscape
+| Tool | Market Position | InspectIQ Advantage |
+|------|----------------|---------------------|
+| Spectora | Market leader, 10K+ accounts | Generic templates, no FL-specific regulatory AI |
+| HomeGauge | Established, multi-inspector | No AI generation, manual narrative writing |
+| ISN | Enterprise focus | No photo-to-report automation |
+| **InspectIQ** | **AI-native, FL-first** | **Auto-detects Citizens Insurance violations, cites FL Statute 468** |
+
+InspectIQ does not replace these platforms — it adds an AI automation layer that none of them offer natively for Florida-specific regulatory compliance.
+
 ### Liability Model
 Each AI-generated report is reviewed and signed by the licensed inspector of record — reducing report time from 2.5h to ~30 min while maintaining full professional accountability under FL Statute 468.8314.
 
