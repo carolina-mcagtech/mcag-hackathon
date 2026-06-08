@@ -294,6 +294,25 @@ MCAG Technologies LLC — inspectiq.ai
 
 ## Business Model
 
-- **Pricing:** $99–$179/month per licensed inspector (SaaS subscription)
-- **Acquisition:** InterNACHI Florida chapter, REBS inspection school graduates, direct outreach via FABI
-- **Liability:** Each AI-generated report is reviewed and signed by the licensed inspector of record — reducing report time from 2.5h to ~30 min while maintaining full professional accountability under FL Statute 468.8314
+**InspectIQ is the AI report automation layer of a full SaaS platform for licensed Florida home inspectors.**
+
+### Pricing Tiers
+| Tier | Price | Target | Includes |
+|------|-------|--------|----------|
+| Starter | $49/mo | New inspectors (post-school, ≤15 reports/mo) | 15 reports/mo, FL templates, basic branding, mobile app |
+| Professional | $99/mo | Established inspectors | Unlimited reports, custom domain, **AI finding automation (InspectIQ)**, integrations |
+| White-Label Pro | $179/mo | Inspectors building a firm | Everything + client portal, full branding, multi-user (up to 3), basic API |
+| Agency | $349/mo + $40/additional inspector | Small firms (2-10 inspectors) | Multi-user, admin dashboard, consolidated reports |
+
+> InspectIQ AI agent is included in Professional tier and above.
+
+### Acquisition Channels
+- InterNACHI Florida chapter (largest inspector association in FL)
+- REBS inspection school graduates (direct pipeline — school reopening 2026, ~30-60 new inspectors/year)
+- FABI (Florida Association of Building Inspectors)
+
+### Liability Model
+Each AI-generated report is reviewed and signed by the licensed inspector of record — reducing report time from 2.5h to ~30 min while maintaining full professional accountability under FL Statute 468.8314.
+
+### Roadmap
+- Pre-inspection property briefing: county permit history, prior inspection records, and property alerts before the inspector arrives on site (planned for White-Label Pro tier)
