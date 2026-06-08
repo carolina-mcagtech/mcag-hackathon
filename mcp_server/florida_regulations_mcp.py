@@ -39,12 +39,10 @@ mcp_app = FastAPI(
 # ── ChromaDB helpers ──────────────────────────────────────────────────────────
 
 def _get_collection() -> chromadb.Collection:
+    """Return the regulations collection. Read-only — seeding is done by the main app at startup."""
     client = chromadb.PersistentClient(path=_CHROMA_PATH)
     ef = embedding_functions.DefaultEmbeddingFunction()
-    collection = client.get_or_create_collection(name=_COLLECTION_NAME, embedding_function=ef)
-    if collection.count() == 0:
-        _seed_collection(collection)
-    return collection
+    return client.get_or_create_collection(name=_COLLECTION_NAME, embedding_function=ef)
 
 
 def _seed_collection(collection: chromadb.Collection) -> None:

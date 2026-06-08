@@ -72,7 +72,17 @@ def _run_mcp_server() -> None:
 
 @app.on_event("startup")
 def startup() -> None:
-    """Launch the MCP server thread on startup."""
+    """Pre-seed ChromaDB then launch the MCP server thread."""
+    # Seed ChromaDB once at startup so neither the MCP server nor the direct
+    # fallback path race to write the empty database on first request.
+    try:
+        import chromadb as _chromadb
+        from tools.validate_regulation import _DEFAULT_CHROMA_PATH, _load_regulations_into_chroma
+        client = _chromadb.PersistentClient(path=_DEFAULT_CHROMA_PATH)
+        _load_regulations_into_chroma(client)
+        logging.getLogger(__name__).info("ChromaDB pre-seeded")
+    except Exception as exc:
+        logging.getLogger(__name__).warning("ChromaDB pre-seed failed: %s", exc)
     t = threading.Thread(target=_run_mcp_server, daemon=True, name="mcp-server")
     t.start()
     logging.getLogger(__name__).info("MCP server thread started on port 8001")
