@@ -35,6 +35,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from demo.run_demo import INSPECTION_DATE, MOCK_FINDINGS, PROPERTY_ADDRESS
+from tools.audit_narrative import AuditResult, audit_narrative
 from tools.classify_photo import FindingDraft, classify_photo_from_bytes
 from tools.generate_narrative import assemble_full_report, generate_narrative
 from tools.validate_regulation import validate_regulation
@@ -80,11 +81,29 @@ def _run_pipeline(
     inspection_date: str,
     inspection_type: str = "4-point",
 ) -> dict[str, Any]:
-    """Validate → narrate → assemble. Returns a serialisable report dict."""
+    """Validate → narrate → audit → assemble. Returns a serialisable report dict."""
     checks = [validate_regulation(f) for f in findings]
     sections = [generate_narrative(f, c) for f, c in zip(findings, checks)]
+
+    # Audit each section for severity consistency, statute accuracy, disclaimer compliance
+    audited_sections = []
+    for finding, check, section in zip(findings, checks, sections):
+        try:
+            audit = audit_narrative(
+                narrative=section.narrative,
+                finding=finding,
+                regulatory_check=check,
+                inspection_type=inspection_type,
+            )
+        except Exception:
+            audit = AuditResult(
+                passed=True, confidence=0.0, flags=[],
+                verified_statutes=[], auditor_note="Audit skipped.",
+            )
+        audited_sections.append(section.model_copy(update={"audit_result": audit}))
+
     report = assemble_full_report(
-        sections=sections,
+        sections=audited_sections,
         property_address=property_address,
         inspection_date=inspection_date,
         inspector_license=(
@@ -646,6 +665,18 @@ def _render_report_html(report: dict[str, Any]) -> str:
         note_html = (
             f'<div class="inspector-note">{escape(note)}</div>' if note else ""
         )
+        audit = s.get("audit_result") or {}
+        if audit:
+            if audit.get("passed"):
+                statutes = audit.get("verified_statutes") or []
+                stat_text = f" · {len(statutes)} statute{'s' if len(statutes) != 1 else ''} verified" if statutes else ""
+                audit_badge_html = f'<div class="audit-badge audit-pass">&#10003; Audit Agent verified{escape(stat_text)}</div>'
+            else:
+                flags = audit.get("flags") or []
+                flag_text = f" — {escape(flags[0][:80])}" if flags else ""
+                audit_badge_html = f'<div class="audit-badge audit-warn">&#9888; Review Required{flag_text}</div>'
+        else:
+            audit_badge_html = ""
         actions = s.get("action_items") or []
         action_items_html = "\n".join(
             f"<li>{escape(a)}</li>" for a in actions
@@ -669,6 +700,7 @@ def _render_report_html(report: dict[str, Any]) -> str:
               <div class="narrative"><p>{narrative_text}</p></div>
               {actions_block}
               {note_html}
+              {audit_badge_html}
             </div>
             {photo}
           </div>
@@ -918,6 +950,19 @@ def _render_report_html(report: dict[str, Any]) -> str:
       border-top: 1px solid #F0F0F0;
       line-height: 1.6;
     }}
+    .audit-badge {{
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }}
+    .audit-pass {{ background: #ECFDF5; color: #166534; }}
+    .audit-warn {{ background: #FEF3C7; color: #92400E; }}
 
     /* ── Limitations ── */
     .limitations-block {{

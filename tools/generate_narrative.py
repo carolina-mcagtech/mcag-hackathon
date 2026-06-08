@@ -13,6 +13,7 @@ from typing import Optional
 from google import genai
 from pydantic import BaseModel, Field
 
+from tools.audit_narrative import AuditResult
 from tools.classify_photo import FindingDraft
 from tools.validate_regulation import RegulatoryCheck
 
@@ -29,6 +30,10 @@ class ReportSection(BaseModel):
         default=None,
         description="Optional disclaimer or limitation note (e.g. 'Area inaccessible')",
     )
+    audit_result: Optional[AuditResult] = Field(
+        default=None,
+        description="Quality audit result from AuditAgent (severity, statutes, disclaimers)",
+    )
 
 
 class FullReport(BaseModel):
@@ -42,6 +47,10 @@ class FullReport(BaseModel):
     sections: list[ReportSection]
     limitations: list[str]
     footer: str
+    audit_summary: Optional[dict] = Field(
+        default=None,
+        description="Aggregate audit stats: total, passed, flagged, overall_passed",
+    )
 
 
 _NARRATIVE_PROMPT = """You are a licensed Florida home inspector writing a professional inspection report
@@ -192,6 +201,18 @@ def assemble_full_report(
         "AI-generated narratives must be reviewed and approved by the licensed inspector of record.",
     ]
 
+    # Compute aggregate audit summary from sections that were audited
+    audited = [s.audit_result for s in sections if s.audit_result is not None]
+    audit_summary: Optional[dict] = None
+    if audited:
+        passed = sum(1 for r in audited if r.passed)
+        audit_summary = {
+            "total": len(audited),
+            "passed": passed,
+            "flagged": len(audited) - passed,
+            "overall_passed": (len(audited) - passed) == 0,
+        }
+
     return FullReport(
         property_address=property_address,
         inspection_date=inspection_date,
@@ -205,6 +226,7 @@ def assemble_full_report(
             "Florida Standards of Practice. For questions contact the inspector of record. "
             "FloridaInspect Agent — AI-assisted reporting system by MCAG Technologies."
         ),
+        audit_summary=audit_summary,
     )
 
 

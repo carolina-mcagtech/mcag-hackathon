@@ -28,9 +28,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from tools.audit_narrative import AuditResult, audit_narrative
 from tools.classify_photo import FindingDraft
+from tools.generate_narrative import assemble_full_report, generate_narrative
 from tools.validate_regulation import validate_regulation
-from tools.generate_narrative import generate_narrative, assemble_full_report
 
 
 PROPERTY_ADDRESS = "4712 Palmetto Oak Drive, Tampa, FL 33647"
@@ -162,7 +163,7 @@ def run_demo() -> None:
         _run_offline_demo()
         return
 
-    print("\nStep 1/3 — Validating findings against FL regulations (RAG)...")
+    print("\nStep 1/4 — Validating findings against FL regulations (RAG)...")
     findings: list[FindingDraft] = []
     checks = []
 
@@ -177,7 +178,7 @@ def run_demo() -> None:
     critical_count = sum(1 for c in checks if c.insurance_impact == "critical")
     print(f"\n  Insurance-blocking findings: {critical_count}")
 
-    print("\nStep 2/3 — Generating professional report narratives (Gemini)...")
+    print("\nStep 2/4 — Generating professional report narratives (Gemini)...")
     sections = []
     for i, (finding, check) in enumerate(zip(findings, checks)):
         print(f"  Generating section {i+1}/{len(findings)}: {finding.system} ({finding.severity})...", end=" ", flush=True)
@@ -186,9 +187,37 @@ def run_demo() -> None:
         mode = "fallback" if section.inspector_note and "fallback" in section.inspector_note else "AI"
         print(mode)
 
-    print("\nStep 3/3 — Assembling full report...")
+    print("\nStep 3/4 — Auditing narratives (AuditAgent — severity, statutes, disclaimers)...")
+    audited_sections = []
+    audit_passed = 0
+    for i, (finding, check, section) in enumerate(zip(findings, checks, sections)):
+        print(f"  Auditing section {i+1}/{len(sections)}: {finding.system}...", end=" ", flush=True)
+        try:
+            audit = audit_narrative(
+                narrative=section.narrative,
+                finding=finding,
+                regulatory_check=check,
+                inspection_type="4-point",
+            )
+        except Exception as exc:
+            audit = AuditResult(
+                passed=True, confidence=0.0, flags=[f"Audit error: {exc}"],
+                verified_statutes=[], auditor_note="Audit skipped.",
+            )
+        audited_sections.append(section.model_copy(update={"audit_result": audit}))
+        status = "PASS" if audit.passed else f"FLAGGED ({len(audit.flags)} issue{'s' if len(audit.flags) != 1 else ''})"
+        if audit.passed:
+            audit_passed += 1
+        print(status)
+        if not audit.passed:
+            for flag in audit.flags:
+                print(f"    ! {flag}")
+
+    print(f"\n  Audit summary: {audit_passed}/{len(audited_sections)} sections passed")
+
+    print("\nStep 4/4 — Assembling full report...")
     report = assemble_full_report(
-        sections=sections,
+        sections=audited_sections,
         property_address=PROPERTY_ADDRESS,
         inspection_date=INSPECTION_DATE,
     )
@@ -214,6 +243,13 @@ def run_demo() -> None:
                 print(f"  • {action}")
         if section.inspector_note:
             print(f"\nNote: {section.inspector_note}")
+        if section.audit_result:
+            ar = section.audit_result
+            badge = "✓ AUDIT PASSED" if ar.passed else f"⚠ AUDIT FLAGGED ({len(ar.flags)} issue{'s' if len(ar.flags) != 1 else ''})"
+            print(f"Audit: {badge} | confidence={ar.confidence:.2f} | {ar.auditor_note}")
+            if not ar.passed:
+                for flag in ar.flags:
+                    print(f"  ! {flag}")
 
     print(f"\n{'='*72}")
     print("LIMITATIONS")
@@ -223,10 +259,26 @@ def run_demo() -> None:
     print(f"\n{report.footer}")
     print("=" * 72)
 
-    # Save JSON output
+    # Save JSON output — inject real REBS photo URLs keyed by system name
+    _PHOTO_BASE = (
+        "https://raw.githubusercontent.com/carolina-mcagtech/"
+        "mcag-hackathon/master/docs/photos"
+    )
+    _DEMO_PHOTOS: dict[str, str] = {
+        "roof":      f"{_PHOTO_BASE}/roof.jpeg",
+        "electrical": f"{_PHOTO_BASE}/electrical.jpeg",
+        "plumbing":  f"{_PHOTO_BASE}/plumbing.jpeg",
+        "hvac":      f"{_PHOTO_BASE}/hvac.jpeg",
+    }
+    report_dict = report.model_dump()
+    for section in report_dict.get("sections", []):
+        key = section.get("system", "").lower().split()[0]
+        if key in _DEMO_PHOTOS:
+            section["photo_url"] = _DEMO_PHOTOS[key]
     output_path = Path(__file__).parent.parent / "demo_report_output.json"
     with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report.model_dump(), f, indent=2)
+        json.dump(report_dict, f, indent=2)
+        f.write("\n")
     print(f"\nFull report JSON saved to: {output_path}")
 
 

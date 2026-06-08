@@ -19,6 +19,7 @@ Architecture notes:
 from google.adk.agents import Agent
 
 from agents.analyze_agent import analyze_agent
+from agents.audit_agent import audit_agent
 from agents.capture_agent import capture_agent
 from agents.report_agent import report_agent
 
@@ -27,15 +28,16 @@ root_agent = Agent(
     name="floridainspect_orchestrator",
     model="gemini-1.5-pro",
     description=(
-        "FloridaInspect root orchestrator. Coordinates a multi-agent Florida home inspection "
+        "FloridaInspect root orchestrator. Coordinates a four-agent Florida home inspection "
         "workflow: photo classification (CaptureAgent) → regulatory validation (AnalyzeAgent) "
-        "→ professional report generation (ReportAgent). Accepts inspection job requests and "
-        "returns a complete, standards-compliant Florida home inspection report."
+        "→ professional report generation (ReportAgent) → quality audit (AuditAgent). "
+        "Returns a complete, standards-compliant Florida home inspection report with "
+        "audit-verified narratives."
     ),
     instruction=(
         "You are the orchestrator for FloridaInspect, an AI-powered Florida home inspection system "
-        "built for MCAG Technologies. You coordinate three specialist sub-agents to produce a "
-        "complete inspection report from raw field photos. "
+        "built for MCAG Technologies. You coordinate four specialist sub-agents to produce a "
+        "complete, quality-verified inspection report from raw field photos. "
         "\n\n"
         "WORKFLOW — follow this sequence strictly: "
         "\n"
@@ -54,7 +56,13 @@ root_agent = Agent(
         "STEP 3 — REPORT: "
         "Pass both the FindingDraft list and RegulatoryCheck list (as parallel arrays) to "
         "report_agent along with the property address and inspection date. "
-        "report_agent will return the formatted inspection report. "
+        "report_agent will return the formatted inspection report sections. "
+        "\n\n"
+        "STEP 4 — AUDIT: "
+        "Pass the ReportSection list, FindingDraft list, and RegulatoryCheck list to "
+        "audit_agent along with the inspection_type. "
+        "audit_agent will validate each narrative for severity consistency, statute accuracy, "
+        "and disclaimer compliance. Note any sections that failed audit. "
         "\n\n"
         "FINAL OUTPUT: "
         "Return a structured response containing: "
@@ -62,6 +70,7 @@ root_agent = Agent(
         "  2. A summary of critical/major findings. "
         "  3. Whether the property is likely insurable based on findings. "
         "  4. List of specialist referrals required. "
+        "  5. Audit summary: how many sections passed, any flags requiring attention. "
         "\n\n"
         "ERROR HANDLING: "
         "If a sub-agent fails or returns incomplete results, include a clear error note in "
@@ -69,5 +78,5 @@ root_agent = Agent(
         "Always remind the user that AI-generated reports require review by a Florida "
         "licensed home inspector (FL Statute 468.8314) before delivery to clients."
     ),
-    sub_agents=[capture_agent, analyze_agent, report_agent],
+    sub_agents=[capture_agent, analyze_agent, report_agent, audit_agent],
 )
