@@ -510,9 +510,10 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
             new_message=message,
         ):
             if event.is_final_response():
-                for part in event.content.parts:
-                    if part.text:
-                        final_text = part.text
+                if event.content and event.content.parts:
+                    for part in event.content.parts:
+                        if part.text:
+                            final_text = part.text
 
     finally:
         if tmp_path:
