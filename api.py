@@ -509,11 +509,14 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
             session_id=session.id,
             new_message=message,
         ):
-            if event.is_final_response():
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if part.text:
-                            final_text = part.text
+            # Collect the last text from any event in the stream.
+            # The orchestrator delegates via transfer_to_agent so the final
+            # report text may arrive from a sub-agent event, not from the
+            # orchestrator's own final response.
+            if event.content and event.content.parts:
+                for part in event.content.parts:
+                    if part.text:
+                        final_text = part.text
 
     finally:
         if tmp_path:
