@@ -30,14 +30,14 @@ Field Photo
     │
     ▼
 ┌─────────────────────────────────────────────┐
-│  1. Capture Agent  (Gemini 2.0 Flash Vision) │
+│  1. Capture Agent  (Gemini 2.5 Flash Vision) │
 │     Photo → structured FindingDraft          │
 │     system / severity / confidence           │
 └───────────────────┬─────────────────────────┘
                     │
                     ▼
 ┌─────────────────────────────────────────────┐
-│  2. Analyze Agent  (RAG + Gemini 1.5 Pro)    │
+│  2. Analyze Agent  (RAG + Gemini 2.5 Flash)  │
 │     FindingDraft → RegulatoryCheck           │
 │     FL Statute 468 · Citizens 4-Point ·      │
 │     Wind Mitigation · DBPR                   │
@@ -45,7 +45,7 @@ Field Photo
                     │
                     ▼
 ┌─────────────────────────────────────────────┐
-│  3. Report Agent   (Gemini 1.5 Pro)          │
+│  3. Report Agent   (Gemini 2.5 Flash)        │
 │     Findings → professional narrative        │
 │     FullReport: sections · summary ·         │
 │     action items · FL-compliant disclaimers  │
@@ -80,7 +80,7 @@ The HTML report and JSON endpoints are pre-loaded with a real 7-finding Tampa pr
 
 ## Demo Report
 
-> Live demo: https://inspectiq-agent-production.up.railway.app/demo-report
+> Live demo: https://inspectiq-agent-fyo6xgoawq-uc.a.run.app/demo-report
 
 ![InspectIQ Architecture](inspectiq_architecture_finalversion.svg)
 
@@ -168,7 +168,7 @@ InspectIQ automatically detects insurance-blocking violations against:
 ### Prerequisites
 
 - Python 3.11+
-- A [Gemini API key](https://aistudio.google.com/app/apikey)
+- Google Cloud project with Vertex AI enabled, or a [Gemini API key](https://aistudio.google.com/app/apikey) for local dev
 
 ### Install
 
@@ -186,7 +186,8 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 
 ```bash
 cp .env.example .env
-# Add your GEMINI_API_KEY to .env
+# For local dev with Gemini API key, add GEMINI_API_KEY to .env
+# For Vertex AI (production), configure ADC: gcloud auth application-default login
 ```
 
 ### Run the demo (no photos required)
@@ -218,7 +219,7 @@ python main.py \
 
 ```
 mcag-hackathon/
-├── api.py                      # FastAPI HTTP interface (Railway deployment)
+├── api.py                      # FastAPI HTTP interface (Cloud Run / Vertex AI)
 ├── main.py                     # CLI entry point
 ├── orchestrator/
 │   └── agent.py                # Root ADK agent — coordinates sub-agents
@@ -279,10 +280,9 @@ ReportSection(
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GEMINI_API_KEY` | **Yes** | Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| `GOOGLE_CLOUD_PROJECT` | No | GCP project ID (Vertex AI mode only) |
-| `GOOGLE_CLOUD_LOCATION` | No | GCP region (Vertex AI mode only) |
-| `GOOGLE_GENAI_USE_VERTEXAI` | No | Set `TRUE` to use Vertex AI instead of Gemini API |
+| `GOOGLE_CLOUD_PROJECT` | **Yes** | GCP project ID (`mcag-hackathon` in production) |
+| `GOOGLE_CLOUD_LOCATION` | No | GCP region (default: `us-central1`) |
+| `GEMINI_API_KEY` | Local dev only | Gemini API key — overrides Vertex AI for local testing |
 
 ---
 
