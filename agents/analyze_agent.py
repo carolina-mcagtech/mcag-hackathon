@@ -3,73 +3,43 @@ AnalyzeAgent — Second stage of the FloridaInspect pipeline.
 
 Responsibilities:
 - Receive FindingDraft objects from CaptureAgent.
-- Call validate_regulation (RAG against fl_regulations.txt + ChromaDB) for each finding.
+- Use the Florida Regulations MCP tool to query relevant FL statutes and codes.
 - Apply Florida-specific regulatory knowledge to produce RegulatoryCheck results.
 - Flag findings that are insurance-blocking or require licensed specialist referral.
 
-This agent embodies the regulatory expertise of a Florida-licensed home inspector:
-it knows Florida Statute 468 Part XV, the Citizens 4-Point form requirements,
-Wind Mitigation OIR-B1-1802 criteria, and common FL-specific deficiencies
-(polybutylene pipe, Federal Pacific panels, Chinese drywall, sinkhole indicators).
+MCP integration: queries ChromaDB via google.adk.tools.mcp_tool.McpToolset with
+stdio transport — no persistent process, no port, no OOM risk.
 """
 
+import sys
+from pathlib import Path
+
+from mcp import StdioServerParameters
 from google.adk.agents import Agent
+from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
+from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
 
-from tools.classify_photo import FindingDraft
-from tools.validate_regulation import RegulatoryCheck, validate_regulation
+_SERVER_SCRIPT = str(Path(__file__).parent.parent / "mcp_server" / "florida_regulations_server.py")
 
-
-def _validate_findings_tool(findings: list[dict]) -> list[dict]:
-    """ADK-callable wrapper around validate_regulation.
-
-    Args:
-        findings: List of FindingDraft dicts (as produced by CaptureAgent).
-
-    Returns:
-        List of RegulatoryCheck dicts with compliance verdicts and actions.
-    """
-    results: list[dict] = []
-    for finding_dict in findings:
-        # Skip error records from CaptureAgent
-        if "error" in finding_dict:
-            results.append({
-                "finding_summary": finding_dict.get("observation", "Unknown"),
-                "applicable_regulations": [],
-                "compliant": None,
-                "violation_description": "Photo could not be classified — skipped regulatory check.",
-                "recommended_action": "Obtain a valid photo of this area for proper evaluation.",
-                "insurance_impact": "none",
-                "supporting_excerpts": [],
-                "skipped": True,
-            })
-            continue
-
-        try:
-            finding = FindingDraft.model_validate(finding_dict)
-            check = validate_regulation(finding)
-            results.append(check.model_dump())
-        except Exception as exc:
-            results.append({
-                "finding_summary": finding_dict.get("observation", "Unknown")[:200],
-                "applicable_regulations": [],
-                "compliant": None,
-                "violation_description": None,
-                "recommended_action": "Manual regulatory review required due to processing error.",
-                "insurance_impact": "none",
-                "supporting_excerpts": [],
-                "error": str(exc),
-            })
-    return results
+_mcp_toolset = McpToolset(
+    connection_params=StdioConnectionParams(
+        server_params=StdioServerParameters(
+            command=sys.executable,
+            args=[_SERVER_SCRIPT],
+        ),
+        timeout=60.0,
+    ),
+)
 
 
 def _flag_critical_findings_tool(regulatory_checks: list[dict]) -> dict:
     """Identify insurance-blocking and safety-critical issues requiring immediate attention.
 
     Args:
-        regulatory_checks: List of RegulatoryCheck dicts from _validate_findings_tool.
+        regulatory_checks: List of RegulatoryCheck dicts produced by the agent.
 
     Returns:
-        Summary dict with lists of critical, major, and referral-required findings.
+        Summary dict with counts and lists of critical, major, and referral findings.
     """
     critical: list[dict] = []
     major: list[dict] = []
@@ -105,30 +75,38 @@ analyze_agent = Agent(
     name="analyze_agent",
     model="gemini-2.5-flash",
     description=(
-        "Validates inspection findings against Florida home inspection regulations using RAG. "
-        "Applies knowledge of Florida Statute 468, 4-Point inspection requirements, Wind Mitigation "
-        "criteria, and common Florida-specific deficiencies (polybutylene pipe, Federal Pacific panels, "
-        "Chinese drywall). Returns regulatory verdicts, violation descriptions, and recommended actions."
+        "Validates inspection findings against Florida home inspection regulations using "
+        "the Florida Regulations MCP tool (ChromaDB RAG). Applies knowledge of FL Statute 468, "
+        "4-Point inspection requirements, Wind Mitigation criteria, and common Florida-specific "
+        "deficiencies (polybutylene pipe, Federal Pacific/Zinsco panels, Chinese drywall). "
+        "Returns regulatory verdicts, violation descriptions, and recommended actions."
     ),
     instruction=(
         "You are the AnalyzeAgent for FloridaInspect, a Florida home inspection AI system. "
         "Your role is to validate each inspection finding against Florida building codes and "
-        "insurance requirements. "
-        "\n\n"
-        "When given a list of FindingDraft observations from CaptureAgent: "
-        "1. Call validate_findings_tool to check each finding against FL regulations. "
-        "2. Call flag_critical_findings_tool to identify insurance-blocking issues. "
-        "3. Prioritise findings by insurance impact: critical > moderate > minor > none. "
-        "4. For any critical finding, clearly state the specific Florida statute or code violated. "
-        "5. Return the complete list of RegulatoryCheck results plus the critical findings summary. "
-        "\n\n"
-        "Key Florida-specific rules to enforce: "
-        "- Federal Pacific / Zinsco panels: non-insurable, must flag as critical. "
-        "- Polybutylene supply piping: non-insurable, must flag as critical. "
-        "- Aluminum branch wiring without COPALUM/AlumiConn: critical safety hazard. "
-        "- Roof age 20+ years or active leaks: insurance-blocking. "
-        "- HVAC/water heater 15+ years: flag for replacement budget. "
-        "- Sinkhole indicators and mold: must refer to licensed specialists."
+        "insurance requirements using the query_florida_regulations MCP tool.\n\n"
+        "When given a list of FindingDraft observations from CaptureAgent:\n"
+        "1. For EACH finding, call query_florida_regulations with a descriptive query combining "
+        "   the finding's system, observation, and severity (e.g. 'Zinsco electrical panel "
+        "   insurance eligibility Citizens 4-point critical'). Use n_results=4.\n"
+        "2. Based on the returned regulation excerpts, determine for each finding:\n"
+        "   - applicable_regulations: list of specific statutes cited in the excerpts\n"
+        "   - compliant: false if the excerpts indicate a violation, true if compliant\n"
+        "   - violation_description: what specific rule is violated (or null if compliant)\n"
+        "   - recommended_action: specific remediation step\n"
+        "   - insurance_impact: 'critical' if insurance-blocking, 'moderate' if major concern, "
+        "     'minor' if minor deficiency, 'none' if no insurance impact\n"
+        "   - supporting_excerpts: list of the relevant excerpt strings returned by the tool\n"
+        "3. Assemble all per-finding results as a list of RegulatoryCheck dicts.\n"
+        "4. Call flag_critical_findings_tool with the complete list to summarise critical items.\n"
+        "5. Return both the full regulatory_checks list and the critical findings summary.\n\n"
+        "Key Florida-specific rules to enforce:\n"
+        "- Federal Pacific / Zinsco panels: non-insurable, insurance_impact=critical.\n"
+        "- Polybutylene supply piping: non-insurable, insurance_impact=critical.\n"
+        "- Aluminum branch wiring without COPALUM/AlumiConn: insurance_impact=critical.\n"
+        "- Roof age 20+ years or active leaks: insurance_impact=critical.\n"
+        "- HVAC/water heater 15+ years: insurance_impact=moderate.\n"
+        "- Sinkhole indicators and mold: insurance_impact=critical, refer to specialists."
     ),
-    tools=[_validate_findings_tool, _flag_critical_findings_tool],
+    tools=[_mcp_toolset, _flag_critical_findings_tool],
 )

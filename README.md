@@ -61,7 +61,7 @@ Field Photo
 | **AnalyzeAgent** | Gemini 2.5 Flash + ChromaDB RAG | `FindingDraft` → `RegulatoryCheck` |
 | **ReportAgent** | Gemini 2.5 Flash | Findings + Checks → `FullReport` |
 
-The Analyze Agent connects to Florida regulations via an **MCP (Model Context Protocol) server** — a dedicated tool server that exposes ChromaDB as a secure, queryable knowledge base. This follows Google ADK's recommended pattern for external tool connectivity.
+The Analyze Agent queries Florida regulations via **Google ADK's `McpToolset`** — the ADK-native MCP integration pattern. The MCP server (`mcp_server/florida_regulations_server.py`) is launched as a stdio subprocess by the ADK framework only when needed, exposing ChromaDB as a `query_florida_regulations` tool. No persistent background process, no extra ports, no memory overhead.
 
 ---
 
@@ -225,12 +225,14 @@ mcag-hackathon/
 │   └── agent.py                # Root ADK agent — coordinates sub-agents
 ├── agents/
 │   ├── capture_agent.py        # Gemini Vision photo classifier
-│   ├── analyze_agent.py        # FL regulation validator (RAG)
+│   ├── analyze_agent.py        # FL regulation validator (ADK McpToolset)
 │   └── report_agent.py         # Professional report generator
+├── mcp_server/
+│   └── florida_regulations_server.py  # MCP server (stdio) — ADK McpToolset target
 ├── tools/
 │   ├── classify_photo.py       # Gemini Vision → FindingDraft
-│   ├── validate_regulation.py  # ChromaDB RAG → RegulatoryCheck
-│   └── generate_narrative.py   # Gemini Pro → ReportSection / FullReport
+│   ├── validate_regulation.py  # ChromaDB RAG → RegulatoryCheck (direct pipeline)
+│   └── generate_narrative.py   # Gemini → ReportSection / FullReport
 ├── data/
 │   └── fl_regulations.txt      # FL Statute 468, 4-Point, Wind Mit. reference
 ├── demo/
