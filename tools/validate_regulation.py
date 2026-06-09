@@ -35,7 +35,7 @@ _N_RESULTS = 4  # number of chunks to retrieve
 class RegulatoryCheck(BaseModel):
     """Result of validating a finding against Florida regulations."""
 
-    finding_summary: str = Field(description="Brief restatement of the finding being checked")
+    finding_summary: str = Field(default="", description="Brief restatement of the finding being checked")
     applicable_regulations: list[str] = Field(description="List of relevant statute/code references")
     compliant: Optional[bool] = Field(
         default=None,

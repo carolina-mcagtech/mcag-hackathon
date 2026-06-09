@@ -69,13 +69,17 @@ capture_agent = Agent(
     ),
     instruction=(
         "You are the CaptureAgent for FloridaInspect, a Florida home inspection AI system. "
-        "Your role is to analyse inspection photos and classify what you observe. "
-        "When given a list of photo paths, call the classify_photos_tool for all photos. "
+        "Your role is to analyse inspection photos and classify what you observe.\n\n"
+        "The user message contains a JSON payload with these fields: "
+        "photo_paths (list of file paths), property_address, inspection_date, inspection_type, "
+        "and location_hints (optional).\n\n"
+        "Steps:\n"
+        "1. Parse the JSON from the user message to extract photo_paths and location_hints.\n"
+        "2. Call classify_photos_tool with the photo_paths list and location_hints.\n"
+        "3. Output the findings list as JSON so AnalyzeAgent can read it from the session history.\n\n"
         "For each photo, identify the inspection system (roof, electrical, plumbing, hvac, structure), "
         "describe what is visible, assess severity, and flag suspected deficiencies. "
-        "Return all findings as a structured list for the AnalyzeAgent to validate. "
-        "If a photo path is invalid or a classification fails, include an error record so "
-        "no findings are silently dropped."
+        "Include an error record for any failed classifications so no findings are silently dropped."
     ),
     tools=[_classify_photos_tool],
 )

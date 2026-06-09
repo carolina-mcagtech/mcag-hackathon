@@ -504,19 +504,89 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
         message = Content(role="user", parts=[Part(text=payload)])
 
         final_text = ""
-        for event in runner.run(
-            user_id="inspector",
-            session_id=session.id,
-            new_message=message,
-        ):
-            # Collect the last text from any event in the stream.
-            # The orchestrator delegates via transfer_to_agent so the final
-            # report text may arrive from a sub-agent event, not from the
-            # orchestrator's own final response.
-            if event.content and event.content.parts:
-                for part in event.content.parts:
-                    if part.text:
-                        final_text = part.text
+        agent_texts: dict[str, str] = {}
+        pipeline_error: str | None = None
+        _SEP = "=" * 72
+        try:
+            for event in runner.run(
+                user_id="inspector",
+                session_id=session.id,
+                new_message=message,
+            ):
+                author = getattr(event, "author", "?")
+                parts = event.content.parts if event.content else []
+                tlen = sum(len(p.text) for p in parts if p.text)
+                if event.content and parts:
+                    for part in parts:
+                        if part.text:
+                            cur = agent_texts.get(author, "")
+                            if _SEP in part.text:
+                                agent_texts[author] = part.text
+                            elif not cur or len(part.text) > len(cur):
+                                agent_texts[author] = part.text
+                        # format_report_text_tool returns its result in function_response.
+                        if (
+                            author == "report_agent"
+                            and hasattr(part, "function_response")
+                            and part.function_response
+                        ):
+                            resp_val = getattr(part.function_response, "response", None)
+                            if isinstance(resp_val, dict):
+                                for v in resp_val.values():
+                                    if isinstance(v, str) and _SEP in v:
+                                        agent_texts["report_agent"] = v
+                                        break
+        except Exception as exc:
+            pipeline_error = str(exc)
+
+        # Fallback: scan session history for tool responses from report_agent.
+        # Prefer _format_report_text_tool (formatted text), then format
+        # _assemble_report_tool result ourselves if needed.
+        if not agent_texts.get("report_agent"):
+            session_snap = await session_service.get_session(
+                app_name="floridainspect", user_id="inspector", session_id=session.id
+            )
+            _assembled_report: dict | None = None
+            if session_snap:
+                for ev in reversed(session_snap.events):
+                    if ev.author == "report_agent" and ev.content:
+                        for part in ev.content.parts:
+                            if not (hasattr(part, "function_response") and part.function_response):
+                                continue
+                            fn_name = getattr(part.function_response, "name", "")
+                            rv = getattr(part.function_response, "response", {}) or {}
+                            if fn_name == "_format_report_text_tool":
+                                rs = rv.get("result", "")
+                                if rs and _SEP in rs:
+                                    agent_texts["report_agent"] = rs
+                                    break
+                            elif fn_name == "_assemble_report_tool" and _assembled_report is None:
+                                if isinstance(rv, dict) and rv.get("sections"):
+                                    _assembled_report = rv
+                    if agent_texts.get("report_agent"):
+                        break
+            # If we found an assembled report but not formatted text, format it now.
+            if not agent_texts.get("report_agent") and _assembled_report:
+                from agents.report_agent import _format_report_text_tool
+                formatted = _format_report_text_tool(_assembled_report)
+                if formatted:
+                    agent_texts["report_agent"] = formatted
+
+        # Use report_agent text as the final report. Fall back to audit_agent or
+        # capture_agent only if report_agent produced nothing.
+        for preferred in ("report_agent", "audit_agent", "capture_agent"):
+            if agent_texts.get(preferred):
+                final_text = agent_texts[preferred]
+                break
+        if not final_text and agent_texts:
+            final_text = max(agent_texts.values(), key=len)
+
+        if not final_text:
+            detail = f"ADK pipeline produced no output. {pipeline_error}" if pipeline_error else (
+                "ADK pipeline produced no output — this usually means a Vertex AI 429 "
+                "RESOURCE_EXHAUSTED rate limit. Wait 30 seconds and retry."
+            )
+            raise HTTPException(status_code=503, detail=detail)
 
     finally:
         if tmp_path:
@@ -526,8 +596,8 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
     result: dict[str, Any] = {
         "report_id": report_id,
         "adk_orchestrated": True,
-        "orchestrator": "floridainspect_orchestrator",
-        "agents_used": ["capture_agent", "analyze_agent", "report_agent"],
+        "orchestrator": "floridainspect_pipeline",
+        "agents_used": ["capture_agent", "analyze_agent", "report_agent", "audit_agent"],
         "property_address": property_address,
         "inspection_date": inspection_date,
         "inspection_type": body.inspection_type,
