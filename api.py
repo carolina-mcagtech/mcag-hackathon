@@ -12,6 +12,7 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import datetime
 import json
@@ -50,6 +51,11 @@ app = FastAPI(
 
 # In-memory store for pipeline-generated reports (keyed by UUID)
 reports_store: dict[str, dict[str, Any]] = {}
+
+# Lifespan cache for /demo-report — populated on startup by running the real
+# pipeline against MOCK_FINDINGS, so judges always see live Gemini-generated
+# narratives instead of a potentially stale committed JSON file.
+DEMO_CACHE: dict[str, Any] | None = None
 
 # Persistent report storage — survives server restarts
 _REPORTS_DIR = Path(__file__).parent / "reports"
@@ -117,6 +123,34 @@ def _run_pipeline(
 
 
 _DEMO_RESULT_PATH = Path(__file__).parent / "demo_report_output.json"
+
+
+def _generate_demo_report() -> dict[str, Any]:
+    """Run the live pipeline against the built-in Tampa demo findings."""
+    findings = [FindingDraft.model_validate(f) for f in MOCK_FINDINGS]
+    return _run_pipeline(
+        findings=findings,
+        property_address=PROPERTY_ADDRESS,
+        inspection_date=INSPECTION_DATE,
+        inspection_type="4-point",
+    )
+
+
+@app.on_event("startup")
+async def _warm_demo_cache() -> None:
+    """Populate DEMO_CACHE in the background so /demo-report serves live content.
+
+    Runs asynchronously so it doesn't delay container startup / health checks.
+    Until it completes, /demo-report falls back to demo_report_output.json.
+    """
+    async def _populate() -> None:
+        global DEMO_CACHE
+        try:
+            DEMO_CACHE = await asyncio.to_thread(_generate_demo_report)
+        except Exception:
+            logging.exception("Failed to warm demo cache")
+
+    asyncio.create_task(_populate())
 
 
 # ── GET /health ───────────────────────────────────────────────────────────────
@@ -1242,17 +1276,22 @@ def get_report(report_id: str) -> HTMLResponse:
 
 @app.get("/demo-report", response_class=HTMLResponse)
 def demo_report_html() -> HTMLResponse:
-    """Return the pre-generated Tampa demo report as a professional HTML page.
+    """Return the Tampa demo report as a professional HTML page.
 
-    Uses demo_report_output.json from disk — no pipeline run required.
-    Ideal for judges and demos: instant, no API key needed.
+    Serves from DEMO_CACHE — populated at startup by running the live
+    pipeline against MOCK_FINDINGS — so judges always see fresh,
+    correctly-configured Gemini narratives. Falls back to the committed
+    demo_report_output.json only during the brief startup warm-up window
+    before DEMO_CACHE is populated.
     """
-    if not _DEMO_RESULT_PATH.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Demo report not found on disk. Run POST /demo first.",
-        )
-    report = json.loads(_DEMO_RESULT_PATH.read_text(encoding="utf-8"))
+    report = DEMO_CACHE
+    if report is None:
+        if not _DEMO_RESULT_PATH.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Demo report not found on disk. Run POST /demo first.",
+            )
+        report = json.loads(_DEMO_RESULT_PATH.read_text(encoding="utf-8"))
     return HTMLResponse(
         content=_render_report_html(_inject_demo_photos(report)),
         headers={
