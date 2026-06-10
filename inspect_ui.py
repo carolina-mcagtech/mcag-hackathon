@@ -1,8 +1,7 @@
 """inspect_ui.py — static HTML page for GET /inspect-ui.
 
-A single-page form that lets a user kick off the full ADK inspection
-pipeline (POST /adk-pipeline) and links to the resulting report once
-it's ready.
+A single-page form that lets a user kick off the inspection pipeline
+(POST /pipeline) and links to the resulting report once it's ready.
 """
 
 from __future__ import annotations
@@ -274,14 +273,14 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
     statusRow.className = 'status-row';
     statusRow.innerHTML = `
       <div class="spinner"></div>
-      <div class="status-text">Running the inspection pipeline &mdash; this can take up to a minute&hellip;</div>
+      <div class="status-text">Running the inspection pipeline &mdash; this can take up to a few minutes&hellip;</div>
     `;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 150000);
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
 
     try {
-      const resp = await fetch('/adk-pipeline', {
+      const resp = await fetch('/pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
