@@ -464,6 +464,11 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
         inspection_date=body.inspection_date or datetime.date.today().isoformat(),
         inspection_type=body.inspection_type,
     )
+    if not result.get("sections") and not result.get("executive_summary"):
+        raise HTTPException(
+            status_code=422,
+            detail="Could not analyze this image. Please try a clearer photo.",
+        )
     if body.photo_url and result.get("sections"):
         result["sections"][0]["photo_url"] = body.photo_url
     report_id = str(uuid.uuid4())
