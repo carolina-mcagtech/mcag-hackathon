@@ -822,6 +822,8 @@ def _render_report_html(report: dict[str, Any]) -> str:
     adk_exec_summary = ""
     if not sections and adk_report_text:
         adk_exec_summary, sections = _parse_adk_report_text(adk_report_text)
+        if report.get("photo_url") and sections:
+            sections[0]["photo_url"] = report["photo_url"]
     inspection_type = report.get("inspection_type", "4-Point")
 
     # Severity counts
