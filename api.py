@@ -1253,4 +1253,11 @@ def demo_report_html() -> HTMLResponse:
             detail="Demo report not found on disk. Run POST /demo first.",
         )
     report = json.loads(_DEMO_RESULT_PATH.read_text(encoding="utf-8"))
-    return HTMLResponse(content=_render_report_html(_inject_demo_photos(report)))
+    return HTMLResponse(
+        content=_render_report_html(_inject_demo_photos(report)),
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
