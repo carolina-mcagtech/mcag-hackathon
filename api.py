@@ -38,6 +38,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from demo.run_demo import INSPECTION_DATE, MOCK_FINDINGS, PROPERTY_ADDRESS
+from inspect_ui import INSPECT_UI_HTML
 from tools.audit_narrative import AuditResult, audit_narrative
 from tools.classify_photo import FindingDraft, classify_photo_from_bytes
 from tools.generate_narrative import assemble_full_report, generate_narrative
@@ -158,6 +159,14 @@ async def _warm_demo_cache() -> None:
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {"status": "ok", "service": "InspectIQ Agent"}
+
+
+# ── GET /inspect-ui ───────────────────────────────────────────────────────────
+
+@app.get("/inspect-ui", response_class=HTMLResponse)
+def inspect_ui() -> HTMLResponse:
+    """Serve a simple form for kicking off the ADK inspection pipeline."""
+    return HTMLResponse(content=INSPECT_UI_HTML)
 
 
 # ── GET /demo-result ──────────────────────────────────────────────────────────
