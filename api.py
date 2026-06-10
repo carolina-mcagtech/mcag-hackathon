@@ -736,16 +736,16 @@ def _inject_demo_photos(report: dict[str, Any]) -> dict[str, Any]:
 def _photo_block(url: Optional[str], component: str) -> str:
     """Render the photo thumbnail + caption block for a finding card."""
     safe_comp = escape(component)
-    placeholder = f'<div class="photo-placeholder"><span>Photo: {safe_comp}</span></div>'
     if url:
         safe_url = escape(url)
+        placeholder = f'<div class="photo-placeholder" style="display:none"><span>Photo: {safe_comp}</span></div>'
         img = (
             f'<img src="{safe_url}" alt="Field photo — {safe_comp}" class="photo-thumb"'
-            f' style="display:none"'
-            f" onload=\"this.previousElementSibling.style.display='none';this.style.display='block';\""
-            f' onerror="this.style.display=\'none\';">'
+            f' style="display:block; min-height:150px; background:#f0f0f0;"'
+            f" onerror=\"this.style.display='none';this.previousElementSibling.style.display='flex';\">"
         )
     else:
+        placeholder = f'<div class="photo-placeholder"><span>Photo: {safe_comp}</span></div>'
         img = ""
     caption = f'<div class="photo-caption">Field photo — {safe_comp}</div>'
     return f'<div class="card-photo">{placeholder}{img}{caption}</div>'
