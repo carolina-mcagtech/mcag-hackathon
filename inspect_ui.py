@@ -277,6 +277,9 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
       <div class="status-text">Running the inspection pipeline &mdash; this can take up to a minute&hellip;</div>
     `;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 150000);
+
     try {
       const resp = await fetch('/adk-pipeline', {
         method: 'POST',
@@ -288,9 +291,15 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
           inspection_date: inspectionDate,
           inspection_type: inspectionType,
         }),
+        signal: controller.signal,
       });
 
       const data = await resp.json();
+
+      if (resp.status === 429) {
+        startRateLimitCountdown();
+        return;
+      }
 
       if (!resp.ok) {
         let detail = data.detail || `Request failed (HTTP ${resp.status})`;
@@ -308,13 +317,37 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
         Report generated successfully.
         <a href="${reportUrl}" target="_blank">View Report &rarr;</a>
       `;
-    } catch (err) {
-      statusRow.className = 'error-row';
-      statusRow.textContent = `Error: ${err.message || err.detail || JSON.stringify(err)}`;
-    } finally {
       submitBtn.disabled = false;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        statusRow.className = 'error-row';
+        statusRow.textContent = 'Request timed out. Please try again.';
+      } else {
+        statusRow.className = 'error-row';
+        statusRow.textContent = `Error: ${err.message || err.detail || JSON.stringify(err)}`;
+      }
+      submitBtn.disabled = false;
+    } finally {
+      clearTimeout(timeoutId);
     }
   });
+
+  function startRateLimitCountdown() {
+    let secondsLeft = 60;
+    statusRow.className = 'error-row';
+    statusRow.textContent = `Rate limit reached — please wait ${secondsLeft} seconds and try again.`;
+
+    const interval = setInterval(() => {
+      secondsLeft -= 1;
+      if (secondsLeft <= 0) {
+        clearInterval(interval);
+        statusBlock.classList.remove('visible');
+        submitBtn.disabled = false;
+        return;
+      }
+      statusRow.textContent = `Rate limit reached — please wait ${secondsLeft} seconds and try again.`;
+    }, 1000);
+  }
 </script>
 
 </body>

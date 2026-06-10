@@ -632,6 +632,16 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
             )
             raise HTTPException(status_code=503, detail=detail)
 
+        # The ADK runner can swallow a Vertex AI 429 and return it embedded in the
+        # report text as a "successful" response. Detect that and surface it as a
+        # proper rate-limit error instead of a broken report.
+        lowered = final_text.lower()
+        if "resource_exhausted" in lowered or "429" in final_text or "rate limit" in lowered:
+            raise HTTPException(
+                status_code=429,
+                detail="Vertex AI rate limit exceeded. Please wait 60 seconds and try again.",
+            )
+
     finally:
         if tmp_path:
             Path(tmp_path).unlink(missing_ok=True)
