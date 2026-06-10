@@ -282,6 +282,7 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          image_base64: '',
           photo_url: photoUrl,
           property_address: propertyAddress,
           inspection_date: inspectionDate,
@@ -292,7 +293,13 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
       const data = await resp.json();
 
       if (!resp.ok) {
-        throw new Error(data.detail || `Request failed (HTTP ${resp.status})`);
+        let detail = data.detail || `Request failed (HTTP ${resp.status})`;
+        if (Array.isArray(detail)) {
+          detail = detail.map((d) => d.msg || JSON.stringify(d)).join('; ');
+        } else if (typeof detail === 'object') {
+          detail = JSON.stringify(detail);
+        }
+        throw new Error(detail);
       }
 
       const reportUrl = `/report/${data.report_id}`;
@@ -303,7 +310,7 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
       `;
     } catch (err) {
       statusRow.className = 'error-row';
-      statusRow.textContent = `Error: ${err.message}`;
+      statusRow.textContent = `Error: ${err.message || err.detail || JSON.stringify(err)}`;
     } finally {
       submitBtn.disabled = false;
     }
