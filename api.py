@@ -17,6 +17,7 @@ import datetime
 import json
 import logging
 import os
+import re
 import sys
 import tempfile
 import uuid
@@ -692,8 +693,77 @@ def _photo_block(url: Optional[str], component: str) -> str:
     return f'<div class="card-photo">{placeholder}{img}{caption}</div>'
 
 
+def _parse_adk_report_text(text: str) -> tuple[str, list[dict[str, Any]]]:
+    """Parse the plain-text report produced by _format_report_text_tool.
+
+    Returns the executive summary (if present) and a list of section dicts
+    shaped like FullReport sections (system, severity_summary, headline,
+    narrative, action_items, inspector_note) so they can be rendered with
+    the same finding-card markup used by /pipeline.
+    """
+    exec_summary = ""
+    exec_match = re.search(
+        r"EXECUTIVE SUMMARY\n-+\n(.*?)\n\n", text, re.DOTALL
+    )
+    if exec_match:
+        exec_summary = exec_match.group(1).strip()
+
+    sections: list[dict[str, Any]] = []
+    for block in re.split(r"\n=+\n", text):
+        block = block.strip("\n")
+        if not block.startswith("SYSTEM:"):
+            continue
+
+        system = ""
+        condition = ""
+        headline = ""
+        body_lines: list[str] = []
+        for line in block.split("\n"):
+            if line.startswith("SYSTEM:"):
+                system = line[len("SYSTEM:"):].strip()
+            elif line.startswith("Condition:"):
+                condition = line[len("Condition:"):].strip()
+            elif line.startswith("Headline:"):
+                headline = line[len("Headline:"):].strip()
+            else:
+                body_lines.append(line)
+
+        narrative_lines: list[str] = []
+        action_items: list[str] = []
+        inspector_note: str | None = None
+        mode = "narrative"
+        for line in body_lines:
+            stripped = line.strip()
+            if stripped.startswith("Recommended Actions:"):
+                mode = "actions"
+                continue
+            if stripped.startswith("Inspector Note:"):
+                inspector_note = stripped[len("Inspector Note:"):].strip()
+                mode = "note"
+                continue
+            if mode == "narrative":
+                narrative_lines.append(line)
+            elif mode == "actions" and stripped:
+                action_items.append(stripped.lstrip("•-* ").strip())
+
+        sections.append({
+            "system": system.title(),
+            "severity_summary": condition.lower(),
+            "headline": headline,
+            "narrative": "\n".join(narrative_lines).strip("\n"),
+            "action_items": action_items,
+            "inspector_note": inspector_note,
+        })
+
+    return exec_summary, sections
+
+
 def _render_report_html(report: dict[str, Any]) -> str:
     sections = report.get("sections", [])
+    adk_report_text = report.get("report", "") if not sections else ""
+    adk_exec_summary = ""
+    if not sections and adk_report_text:
+        adk_exec_summary, sections = _parse_adk_report_text(adk_report_text)
     inspection_type = report.get("inspection_type", "4-Point")
 
     # Severity counts
@@ -771,13 +841,6 @@ def _render_report_html(report: dict[str, Any]) -> str:
     limitations_html = "\n".join(
         f"<li>{escape(lim)}</li>" for lim in limitations
     )
-
-    # ADK pipeline reports carry a plain-text "report" field instead of sections.
-    adk_report_text = report.get("report", "") if not sections else ""
-    adk_report_html = ""
-    if adk_report_text:
-        safe_text = escape(adk_report_text).replace("\n\n", "</p><p>").replace("\n", "<br>")
-        adk_report_html = f'<div class="adk-report-block"><p>{safe_text}</p></div>'
 
     report_id = report.get("report_id", "")
     report_id_html = (
@@ -1134,7 +1197,7 @@ def _render_report_html(report: dict[str, Any]) -> str:
   <!-- Executive Summary -->
   <div class="section-label">Executive Summary</div>
   <div class="exec-block">
-    <p>{escape(report.get("executive_summary", ""))}</p>
+    <p>{escape(report.get("executive_summary", "") or adk_exec_summary)}</p>
   </div>
 
   <!-- Severity overview chips -->
@@ -1147,7 +1210,6 @@ def _render_report_html(report: dict[str, Any]) -> str:
   <div class="findings">
     {sections_html}
   </div>
-  {adk_report_html}
 
   <!-- Limitations -->
   <div class="limitations-block">
