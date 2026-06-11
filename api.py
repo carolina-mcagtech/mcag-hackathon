@@ -483,8 +483,15 @@ def pipeline(body: PhotoBase64Request) -> dict[str, Any]:
                 status_code=422,
                 detail="Could not analyze this image. Please try again.",
             )
-    if body.photo_url and result.get("sections"):
-        result["sections"][0]["photo_url"] = body.photo_url
+    if result.get("sections"):
+        # Embed downloaded bytes as a data URI so the report never depends
+        # on the source URL being browser-loadable (hotlink protection /
+        # mixed content / expiring links break <img> silently even when
+        # server-side download succeeded).
+        result["sections"][0]["photo_url"] = (
+            f"data:{mime_type or 'image/jpeg'};base64,"
+            f"{base64.b64encode(image_bytes).decode()}"
+        )
     report_id = str(uuid.uuid4())
     result["report_id"] = report_id
     reports_store[report_id] = result
@@ -676,8 +683,14 @@ async def adk_pipeline(body: PhotoBase64Request) -> dict[str, Any]:
         "inspection_type": body.inspection_type,
         "report": final_text,
     }
-    if body.photo_url:
-        result["photo_url"] = body.photo_url
+    # Embed downloaded bytes as a data URI so the report never depends on the
+    # source URL being browser-loadable (hotlink protection / mixed content /
+    # expiring links break <img> silently even when server-side download
+    # succeeded).
+    result["photo_url"] = (
+        f"data:{mime_type or 'image/jpeg'};base64,"
+        f"{base64.b64encode(image_bytes).decode()}"
+    )
 
     reports_store[report_id] = result
     _persist_report(report_id, result)
