@@ -273,11 +273,29 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
     statusRow.className = 'status-row';
     statusRow.innerHTML = `
       <div class="spinner"></div>
-      <div class="status-text">Running the inspection pipeline &mdash; this can take up to a few minutes&hellip;</div>
+      <div class="status-text">Analyzing photo...</div>
     `;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 300000);
+    const timeoutId = setTimeout(() => controller.abort(), 600000);
+
+    const statusMessages = [
+      [0, 'Analyzing photo...'],
+      [30, 'Running regulatory checks...'],
+      [60, 'Generating report narrative...'],
+      [90, 'Running audit verification...'],
+      [120, 'Almost done...'],
+    ];
+    const startTime = Date.now();
+    const statusInterval = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      let message = statusMessages[0][1];
+      for (const [threshold, text] of statusMessages) {
+        if (elapsed >= threshold) message = text;
+      }
+      const statusText = statusRow.querySelector('.status-text');
+      if (statusText) statusText.textContent = message;
+    }, 1000);
 
     try {
       const resp = await fetch('/pipeline', {
@@ -328,6 +346,7 @@ INSPECT_UI_HTML = """<!DOCTYPE html>
       submitBtn.disabled = false;
     } finally {
       clearTimeout(timeoutId);
+      clearInterval(statusInterval);
     }
   });
 
