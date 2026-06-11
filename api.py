@@ -827,6 +827,17 @@ def _parse_adk_report_text(text: str) -> tuple[str, list[dict[str, Any]]]:
     return exec_summary, sections
 
 
+DEFAULT_LIMITATIONS = [
+    "This inspection is a visual, non-invasive examination of accessible areas only.",
+    "Areas not accessible (locked rooms, covered components) were not inspected.",
+    "Wood-destroying organism (WDO) inspection requires a separate licensed pest control operator.",
+    "Sinkhole determination requires a licensed geotechnical engineer.",
+    "Mold testing, if warranted, requires a separate licensed mold assessor.",
+    "This report does not constitute a warranty or guarantee of any system or component.",
+    "AI-generated narratives must be reviewed and approved by the licensed inspector of record.",
+]
+
+
 def _render_report_html(report: dict[str, Any]) -> str:
     sections = report.get("sections", [])
     adk_report_text = report.get("report", "") if not sections else ""
@@ -908,7 +919,7 @@ def _render_report_html(report: dict[str, Any]) -> str:
 
     sections_html = "\n".join(render_section(s) for s in sections)
 
-    limitations = report.get("limitations") or []
+    limitations = report.get("limitations") or DEFAULT_LIMITATIONS
     limitations_html = "\n".join(
         f"<li>{escape(lim)}</li>" for lim in limitations
     )
@@ -1290,7 +1301,7 @@ def _render_report_html(report: dict[str, Any]) -> str:
 
   <!-- Footer -->
   <div class="footer">
-    {escape(report.get("footer", "Prepared in accordance with Florida Statute 468 Part XV"))}
+    This report was prepared in accordance with Florida Statute 468 Part XV and the Florida Standards of Practice. For questions contact the inspector of record. FloridaInspect Agent — AI-assisted reporting system by MCAG Technologies.
   </div>
 
 </div>
