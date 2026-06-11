@@ -1,6 +1,6 @@
 """
 api.py — FastAPI HTTP interface for FloridaInspect Agent.
-Deployed on Railway via Procfile / railway.json.
+Deployed on Google Cloud Run.
 
 Endpoints:
     GET  /health          — liveness probe
@@ -22,6 +22,7 @@ import re
 import sys
 import tempfile
 import uuid
+from contextlib import asynccontextmanager
 from html import escape
 from pathlib import Path
 from typing import Any, Optional
@@ -44,10 +45,29 @@ from tools.classify_photo import FindingDraft, classify_photo_from_bytes
 from tools.generate_narrative import assemble_full_report, generate_narrative
 from tools.validate_regulation import validate_regulation
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Populate DEMO_CACHE in the background so /demo-report serves live content.
+
+    Runs asynchronously so it doesn't delay container startup / health checks.
+    Until it completes, /demo-report falls back to demo_report_output.json.
+    """
+    async def _populate() -> None:
+        global DEMO_CACHE
+        try:
+            DEMO_CACHE = await asyncio.to_thread(_generate_demo_report)
+        except Exception:
+            logging.exception("Failed to warm demo cache")
+
+    asyncio.create_task(_populate())
+    yield
+
+
 app = FastAPI(
     title="InspectIQ Agent",
     version="1.0.0",
     description="AI-powered Florida home inspection report generation",
+    lifespan=lifespan,
 )
 
 # In-memory store for pipeline-generated reports (keyed by UUID)
@@ -135,23 +155,6 @@ def _generate_demo_report() -> dict[str, Any]:
         inspection_date=INSPECTION_DATE,
         inspection_type="4-point",
     )
-
-
-@app.on_event("startup")
-async def _warm_demo_cache() -> None:
-    """Populate DEMO_CACHE in the background so /demo-report serves live content.
-
-    Runs asynchronously so it doesn't delay container startup / health checks.
-    Until it completes, /demo-report falls back to demo_report_output.json.
-    """
-    async def _populate() -> None:
-        global DEMO_CACHE
-        try:
-            DEMO_CACHE = await asyncio.to_thread(_generate_demo_report)
-        except Exception:
-            logging.exception("Failed to warm demo cache")
-
-    asyncio.create_task(_populate())
 
 
 # ── GET /health ───────────────────────────────────────────────────────────────

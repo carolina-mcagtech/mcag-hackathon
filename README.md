@@ -2,8 +2,8 @@
 
 **Autonomous multi-agent AI pipeline that automates Florida home inspection reports — from field photo to regulatory-compliant narrative in minutes.**
 
-[![Cloud Run](https://img.shields.io/badge/deployed-Cloud%20Run-4285F4?logo=googlecloud)](https://inspectiq-agent-fyo6xgoawq-uc.a.run.app/health)
-[![Python](https://img.shields.io/badge/python-3.13-blue?logo=python)](https://www.python.org/)
+[![Cloud Run](https://img.shields.io/badge/deployed-Cloud%20Run-4285F4?logo=googlecloud)](https://inspectiq-agent-259799500638.us-central1.run.app/health)
+[![Python](https://img.shields.io/badge/python-3.11-blue?logo=python)](https://www.python.org/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-multi--agent-4285F4?logo=google)](https://google.github.io/adk-docs/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -71,7 +71,7 @@ The HTML report and JSON endpoints are pre-loaded with a real 7-finding Tampa pr
 
 ## Demo Report
 
-> Live demo: https://inspectiq-agent-fyo6xgoawq-uc.a.run.app/demo-report
+> Live demo: https://inspectiq-agent-259799500638.us-central1.run.app/demo-report
 
 ![InspectIQ Architecture](inspectiq_architecture_finalversion.svg)
 
@@ -95,7 +95,7 @@ The HTML report and JSON endpoints are pre-loaded with a real 7-finding Tampa pr
 ### Example: classify a photo by URL
 
 ```bash
-curl -X POST https://inspectiq-agent-fyo6xgoawq-uc.a.run.app/capture-url \
+curl -X POST https://inspectiq-agent-259799500638.us-central1.run.app/capture-url \
   -H "Content-Type: application/json" \
   -d '{"image_url": "https://example.com/panel.jpg", "inspection_type": "4-point"}'
 ```
@@ -103,7 +103,7 @@ curl -X POST https://inspectiq-agent-fyo6xgoawq-uc.a.run.app/capture-url \
 ### Example: run the full pipeline
 
 ```bash
-curl -X POST https://inspectiq-agent-fyo6xgoawq-uc.a.run.app/pipeline \
+curl -X POST https://inspectiq-agent-259799500638.us-central1.run.app/pipeline \
   -H "Content-Type: application/json" \
   -d '{
     "image_base64": "<base64-encoded-photo>",
