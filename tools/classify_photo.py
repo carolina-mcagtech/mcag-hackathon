@@ -96,7 +96,7 @@ def classify_photo(
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=[prompt, img],
-        config=types.GenerateContentConfig(max_output_tokens=1024),
+        config=types.GenerateContentConfig(max_output_tokens=8192),
     )
     raw = response.text.strip()
 
@@ -136,7 +136,7 @@ def classify_photo_from_bytes(
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=[_SYSTEM_PROMPT + hint_text, image_part],
-            config=types.GenerateContentConfig(max_output_tokens=1024),
+            config=types.GenerateContentConfig(max_output_tokens=8192),
         )
     except genai_errors.ClientError as exc:
         if exc.code == 429:
