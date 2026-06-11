@@ -289,7 +289,7 @@ MCAG Technologies LLC — inspectiq.ai
 
 ## Demo Video
 
-[Watch the demo](YOUR_YOUTUBE_URL_HERE)
+[Watch the demo](https://youtu.be/_SONUcisONU)
 
 ---
 
