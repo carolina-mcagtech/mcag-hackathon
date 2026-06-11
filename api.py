@@ -331,8 +331,25 @@ def _decode_base64_image(image_base64: str) -> bytes:
         raise HTTPException(status_code=422, detail=f"Invalid base64 image data: {exc}") from exc
 
 
+_GITHUB_BLOB_RE = re.compile(
+    r"^https://github\.com/([^/]+)/([^/]+)/(?:blob|raw)/(.+)$"
+)
+
+
+def _normalize_image_url(url: str) -> str:
+    """Rewrite GitHub page/raw-button URLs to raw.githubusercontent.com."""
+    m = _GITHUB_BLOB_RE.match(url)
+    if m:
+        return (
+            f"https://raw.githubusercontent.com/"
+            f"{m.group(1)}/{m.group(2)}/{m.group(3)}"
+        )
+    return url
+
+
 def _download_image(url: str) -> tuple[bytes, str]:
     """Download an image from a URL and return (bytes, mime_type)."""
+    url = _normalize_image_url(url)
     try:
         resp = httpx.get(url, follow_redirects=True, timeout=30)
         resp.raise_for_status()
@@ -342,6 +359,14 @@ def _download_image(url: str) -> tuple[bytes, str]:
         raise HTTPException(status_code=502, detail=f"Failed to download image: {exc}") from exc
 
     content_type = resp.headers.get("content-type", "image/jpeg").split(";")[0].strip()
+    if not content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"URL returned '{content_type}', not an image. "
+                "If using GitHub, paste the Raw file URL."
+            ),
+        )
     return resp.content, content_type
 
 
